@@ -7,11 +7,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -37,6 +37,7 @@ public class WhiteHoleAltarBlock extends Block {
 
     // 1. Membuat properti status AKTIF (bawaan vanilla Mojang)
     public static final BooleanProperty ACTIVE = BlockStateProperties.LIT;
+    private static UUID lastPlacerUUID = null;
 
     // Kamus data untuk mencatat waktu cooldown pemain (1 menit = 1200 tick game)
     private static final HashMap<UUID, Long> ALTAR_COOLDOWN = new HashMap<>();
@@ -53,99 +54,112 @@ public class WhiteHoleAltarBlock extends Block {
     protected @NonNull InteractionResult useWithoutItem(BlockState state, Level level, @NonNull BlockPos pos, Player player, @NonNull BlockHitResult hitResult) {
         ItemStack heldItem = player.getMainHandItem();
         boolean hasEye = state.getValue(ACTIVE);
-        UUID playerUUID = player.getUUID();s
-        long gameTime = level.getGameTime(); // Mengambil waktu internal dunia saat ini
+        UUID playerUUID = player.getUUID();
+        long gameTime = level.getGameTime();
 
-        // --- SISTEM PENGECEKAN COOLDOWN 1 MENIT ---
+        // 1. CEK COOLDOWN 1 MENIT
         if (ALTAR_COOLDOWN.containsKey(playerUUID)) {
-            long lastUsedTime = ALTAR_COOLDOWN.get(playerUUID);
-            long timePassed = gameTime - lastUsedTime;
-
-            if (timePassed < 1200) { // 1200 tick = 60 detik (1 menit)
-                long secondsLeft = (1200 - timePassed) / 20;
+            long timePassed = gameTime - ALTAR_COOLDOWN.get(playerUUID);
+            if (timePassed < 1200) {
                 if (!level.isClientSide()) {
-                    player.sendSystemMessage(Component.literal("§6[White Hole] §cAltar sedang mengumpulkan energi kosmik kembali. Tunggu §e" + secondsLeft + " §cdetik lagi."));
+                    player.sendSystemMessage(Component.literal("§6[White Hole] §cAltar sedang menstabilkan energi fusi. Tunggu §e" + ((1200 - timePassed) / 20) + " §cdetik."));
                 }
                 return InteractionResult.SUCCESS;
             }
         }
 
-        // --- TAHAP 1: MEMASANG MATA (JIKA PILAR MASIH KOSONG) ---
+        // --- RITUAL DIMULAI: PEMASANGAN MATA KOSMIK ---
         if (!hasEye) {
             if (heldItem.is(ModItems.COSMIC_EYE)) {
-                if (!level.isClientSide()) {
-                    // Cek apakah pemain punya barang di Void SEBELUM mengonsumsi Mata
-                    if (VoidDeathHandler.hasSavedItems(playerUUID)) {
 
-                        // KONDISI A: BARANG ADA -> Mata sukses terpasang dan dikonsumsi!
-                        level.setBlock(pos, state.setValue(ACTIVE, true), 3);
-                        if (!player.getAbilities().instabuild) {
-                            heldItem.shrink(1);
-                        }
-                        player.sendSystemMessage(Component.literal("§5[White Hole] §dMata Kosmik terpasang pas pada pilar kuno..."));
-                    } else {
-                        // KONDISI B: BARANG KOSONG -> Mata TIDAK dikonsumsi, dikembalikan ke pemain!
-                        player.sendSystemMessage(Component.literal("§6[White Hole] §cMata Kosmik menolak masuk. Jiwa Anda aman, tidak ada materi yang tertinggal di Void."));
-                    }
-                } else {
-                    // Hanya bunyikan suara jika pemain memang punya barang di Void
-                    if (VoidDeathHandler.hasSavedItems(playerUUID)) {
-                        level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 1.0F, 1.0F, false);
-                    }
+                // Nyalakan mata di pilar secara visual (LIT = true)
+                level.setBlock(pos, state.setValue(ACTIVE, true), 3);
+                if (!player.getAbilities().instabuild) {
+                    heldItem.shrink(1);
+                }
+
+                if (!level.isClientSide()) {
+                    lastPlacerUUID = playerUUID; // Kunci identitas pemain
+                    player.sendSystemMessage(Component.literal("§5[White Hole] §dMata Kosmik terpasang. Membuka gerbang singularitas hampa..."));
+                    level.playSound(null, pos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 0.8F, 1.10F);
+                    level.playSound(null, pos, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 1.0F, 0.8F);
+                    level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.5F, 1.10F);
+
+                    // Jadwalkan waktu tunggu otomatis selama 3 detik (60 ticks)
+                    level.scheduleTick(pos, this, 60);
                 }
                 return InteractionResult.SUCCESS;
             } else {
                 if (!level.isClientSide()) {
-                    player.sendSystemMessage(Component.literal("§7Pilar Altar ini memiliki rongga kosong berbentuk mata. Carilah Cosmic Eye untuk mengisinya."));
+                    player.sendSystemMessage(Component.literal("§7Pilar Altar ini memiliki rongga kosong berbentuk mata. Carilah Cosmic Eye untuk memulai ritual."));
                 }
                 return InteractionResult.SUCCESS;
             }
         }
 
-        // --- TAHAP 2: MENYALAKAN KUNCI UTAMA (MATA SUDAH TERPASANG) ---
-        if (heldItem.is(Items.ECHO_SHARD)) {
-            if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
+        return InteractionResult.PASS;
+    }
 
-                // Ambil daftar item dari memori Void
-                List<ItemStack> savedItems = VoidDeathHandler.getAndClearSavedItems(playerUUID);
+    /**
+     * JEDA WAKTU 3 DETIK HABIS: ALUR MUNTAH OTOMATIS DIEKSEKUSI DI SINI
+     */
+    @Override
+    protected void tick(@NonNull BlockState state, @NonNull ServerLevel serverLevel, @NonNull BlockPos pos, @NonNull RandomSource random) {
+        super.tick(state, serverLevel, pos, random);
 
-                if (savedItems != null) {
-                    double spawnX = pos.getX() + 0.5;
-                    double spawnY = pos.getY() + 1.2;
-                    double spawnZ = pos.getZ() + 0.5;
+        if (lastPlacerUUID == null) return;
+        Player player = serverLevel.getPlayerByUUID(lastPlacerUUID);
+        long gameTime = serverLevel.getGameTime();
 
-                    // Muntahkan seluruh item dari Void ke atas Altar
-                    for (ItemStack stack : savedItems) {
-                        ItemEntity itemEntity = new ItemEntity(serverLevel, spawnX, spawnY, spawnZ, stack);
-                        itemEntity.setDeltaMovement((serverLevel.getRandom().nextDouble() - 0.5) * 0.2, 0.3, (serverLevel.getRandom().nextDouble() - 0.5) * 0.2);
-                        serverLevel.addFreshEntity(itemEntity);
-                    }
+        double spawnX = pos.getX() + 0.5;
+        double spawnY = pos.getY() + 1.2;
+        double spawnZ = pos.getZ() + 0.5;
 
-                    // Konsumsi Echo Shard pemicu kunci
-                    if (!player.getAbilities().instabuild) {
-                        heldItem.shrink(1);
-                    }
+        // --- SKENARIO A: BARANG ADA DI VOID (MUNTAHKAN BARANG SURVIVAL!) ---
+        if (VoidDeathHandler.hasSavedItems(lastPlacerUUID)) {
+            List<ItemStack> savedItems = VoidDeathHandler.getAndClearSavedItems(lastPlacerUUID);
 
-                    // Kembalikan status Altar menjadi Kosong/Mati (LIT=false) agar Mata bisa dipasang lagi nanti
-                    level.setBlock(pos, state.setValue(ACTIVE, false), 3);
-
-                    // DAFTARKAN WAKTU COOLDOWN (Pemain harus menunggu 1 menit sebelum bisa memakai Altar lagi)
-                    ALTAR_COOLDOWN.put(playerUUID, gameTime);
-
-                    player.sendSystemMessage(Component.literal("§6[White Hole] §aGema Echo Shard membuka jalinan ruang waktu!"));
+            if (savedItems != null) {
+                // Semburkan semua zirah dan senjata melayang ke atas
+                for (ItemStack stack : savedItems) {
+                    ItemEntity itemEntity = new ItemEntity(serverLevel, spawnX, spawnY, spawnZ, stack);
+                    itemEntity.setDeltaMovement((random.nextDouble() - 0.5) * 0.2, 0.35, (random.nextDouble() - 0.5) * 0.2);
+                    serverLevel.addFreshEntity(itemEntity);
                 }
-            } else if (level.isClientSide()) {
-                // Efek visual ledakan partikel portal kosmik megah di sisi Client
-                for (int i = 0; i < 60; i++) {
-                    level.addParticle(ParticleTypes.PORTAL, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5,
-                            (level.getRandom().nextDouble() - 0.5) * 0.8, level.getRandom().nextDouble() * 0.6, (level.getRandom().nextDouble() - 0.5) * 0.8);
+
+                // Matikan kembali kelopak mata pilar (Mata hancur melebur jadi energi fusi)
+                serverLevel.setBlock(pos, state.setValue(ACTIVE, false), 3);
+
+                // Aktifkan cooldown 1 menit agar tidak bisa dispam
+                ALTAR_COOLDOWN.put(lastPlacerUUID, gameTime);
+
+                // Audio ledakan kosmik sip
+                serverLevel.playSound(null, pos, SoundEvents.WARDEN_SONIC_BOOM, SoundSource.BLOCKS, 1.0F, 1.1F);
+
+                if (player != null) {
+                    player.sendSystemMessage(Component.literal("§6[White Hole] §aSingularitas pecah! Seluruh materi Anda berhasil direkonstruksi!"));
                 }
-                level.playLocalSound(pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, SoundEvents.WARDEN_SONIC_BOOM, SoundSource.BLOCKS, 1.0F, 1.1F, false);
             }
-            return InteractionResult.SUCCESS;
+        }
+        // --- SKENARIO B: BARANG KOSONG (MUNTAHKAN KEMBALI MATANYA!) ---
+        else {
+            // Matikan kembali kelopak mata pilar menjadi terpejam
+            serverLevel.setBlock(pos, state.setValue(ACTIVE, false), 3);
+
+            // Melempar kembali item Cosmic Eye fisik ke lantai
+            ItemEntity eyeDrop = new ItemEntity(serverLevel, spawnX, spawnY, spawnZ, new ItemStack(ModItems.COSMIC_EYE));
+            eyeDrop.setDeltaMovement((random.nextDouble() - 0.5) * 0.1, 0.2, (random.nextDouble() - 0.5) * 0.1);
+            serverLevel.addFreshEntity(eyeDrop);
+
+            // Audio penolakan energi tersendat
+            serverLevel.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.2F, 1.0F);
+
+            if (player != null) {
+                player.sendSystemMessage(Component.literal("§6[White Hole] §cGerbang menolak masuk! Tidak ada jalinan jiwa Anda yang tertinggal di dasar Void."));
+            }
         }
 
-        return InteractionResult.PASS;
+        lastPlacerUUID = null; // Riset pelacak pemain untuk ritual berikutnya
     }
 
     @Override
