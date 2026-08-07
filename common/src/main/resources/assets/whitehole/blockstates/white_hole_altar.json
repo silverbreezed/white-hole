@@ -5,6 +5,15 @@
     },
     "lit=true": {
       "model": "whitehole:block/white_hole_altar_lit"
-    }
+    },
+    "lit=false,facing=north": { "model": "whitehole:block/white_hole_altar_unlit" },
+    "lit=false,facing=south": { "model": "whitehole:block/white_hole_altar_unlit", "y": 180 },
+    "lit=false,facing=west":  { "model": "whitehole:block/white_hole_altar_unlit", "y": 270 },
+    "lit=false,facing=east":  { "model": "whitehole:block/white_hole_altar_unlit", "y": 90 },
+
+    "lit=true,facing=north":  { "model": "whitehole:block/white_hole_altar_lit" },
+    "lit=true,facing=south":  { "model": "whitehole:block/white_hole_altar_lit", "y": 180 },
+    "lit=true,facing=west":   { "model": "whitehole:block/white_hole_altar_lit", "y": 270 },
+    "lit=true,facing=east":   { "model": "whitehole:block/white_hole_altar_lit", "y": 90 }
   }
 }

@@ -1,11 +1,12 @@
 {
   "render_type": "minecraft:cutout",
   "textures": {
-    "particle": "whitehole:block/altar_pillar",
-    "base": "whitehole:block/altar_base",
-    "pillar": "whitehole:block/altar_pillar",
-    "pillar_glow": "whitehole:block/altar_pillar_e",
-    "top": "whitehole:block/altar_base"
+    "particle": "whitehole:block/altar_pillar_side_unlit",
+    "base": "whitehole:block/altar_base_unlit",
+    "pillar_front": "whitehole:block/altar_pillar_front_unlit",
+    "pillar_front_glow": "whitehole:block/altar_pillar_e",
+    "pillar_side": "whitehole:block/altar_pillar_side_unlit",
+    "top": "whitehole:block/altar_base_unlit"
   },
   "elements": [
     {
@@ -22,14 +23,14 @@
       }
     },
     {
-      "name": "Tiang_Tengah_Ramping",
+      "name": "Tiang_Tengah_Satu_Mata",
       "from": [3.0, 3.0, 3.0],
       "to": [13.0, 12.0, 13.0],
       "faces": {
-        "north": { "uv": [3.0, 3.0, 13.0, 12.0], "texture": "#pillar" },
-        "south": { "uv": [3.0, 3.0, 13.0, 12.0], "texture": "#pillar" },
-        "west":  { "uv": [3.0, 3.0, 13.0, 12.0], "texture": "#pillar" },
-        "east":  { "uv": [3.0, 3.0, 13.0, 12.0], "texture": "#pillar" }
+        "north": { "uv": [3.0, 3.0, 13.0, 12.0], "texture": "#pillar_front" },
+        "south": { "uv": [3.0, 3.0, 13.0, 12.0], "texture": "#pillar_side" },
+        "west":  { "uv": [3.0, 3.0, 13.0, 12.0], "texture": "#pillar_side" },
+        "east":  { "uv": [3.0, 3.0, 13.0, 12.0], "texture": "#pillar_side" }
       }
     },
     {

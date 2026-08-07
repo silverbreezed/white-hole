@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C":  "minecraft:recovery_compass",
+    "N":  "minecraft:nether_star",
+    "E":  "minecraft:ender_eye"
+  },
+  "pattern": [
+    " C ",
+    "ENE",
+    " C "
+  ],
+  "result": {
+    "count": 1,
+    "id": "whitehole:cosmic_eye"
+  }
+}

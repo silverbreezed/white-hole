@@ -14,14 +14,13 @@ public class WhiteHoleFabric implements ModInitializer {
             if (entity instanceof ServerPlayer player) {
                 boolean secured = VoidDeathHandler.handlePlayerVoidDeath(player, damageSource);
 
-                if (secured) {
-                    return false;
-                }
+                return !secured;
             }
             return true;
         }));
 
         org.silverbreezed.whitehole.block.ModBlocks.registerAll();
+        org.silverbreezed.whitehole.item.ModItems.registerAll();
 
         // This method is invoked by the Fabric mod loader when it is ready
         // to load your mod. You can access Fabric and Common code in this
