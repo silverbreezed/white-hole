@@ -40,7 +40,11 @@ public class ModBlocks {
                         .destroyTime(5.0F)
                         .explosionResistance(1200.0F)
                         .requiresCorrectToolForDrops()
+                        .lightLevel(state -> state.getValue(WhiteHoleAltarBlock.ACTIVE) ? 15 : 0)
+
         );
+
+
 
         // Mendaftarkan fisik bloknya menggunakan RegistryKey bawaan 26.2
         Registry.register(BuiltInRegistries.BLOCK, blockKey, block);

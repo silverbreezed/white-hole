@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "whitehole:block/white_hole_altar_unlit"
+    },
+    "lit=true": {
+      "model": "whitehole:block/white_hole_altar_lit"
+    }
+  }
+}
