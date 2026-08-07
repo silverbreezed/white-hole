@@ -116,8 +116,8 @@ public class WhiteHoleAltarBlock extends Block {
         double spawnZ = pos.getZ() + 0.5;
 
         // --- SKENARIO A: BARANG ADA DI VOID (MUNTAHKAN BARANG SURVIVAL!) ---
-        if (VoidDeathHandler.hasSavedItems(lastPlacerUUID)) {
-            List<ItemStack> savedItems = VoidDeathHandler.getAndClearSavedItems(lastPlacerUUID);
+        if (VoidDeathHandler.hasSavedItems(serverLevel, lastPlacerUUID)) {
+            List<ItemStack> savedItems = VoidDeathHandler.getAndClearSavedItems(serverLevel, lastPlacerUUID);
 
             if (savedItems != null) {
                 // Semburkan semua zirah dan senjata melayang ke atas

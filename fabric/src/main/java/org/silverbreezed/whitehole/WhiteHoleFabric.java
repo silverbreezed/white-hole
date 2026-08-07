@@ -10,15 +10,6 @@ public class WhiteHoleFabric implements ModInitializer {
     @Override
     public void onInitialize() {
 
-        ServerLivingEntityEvents.ALLOW_DEATH.register(((entity, damageSource, damageAmount) -> {
-            if (entity instanceof ServerPlayer player) {
-                boolean secured = VoidDeathHandler.handlePlayerVoidDeath(player, damageSource);
-
-                return !secured;
-            }
-            return true;
-        }));
-
         org.silverbreezed.whitehole.block.ModBlocks.registerAll();
         org.silverbreezed.whitehole.item.ModItems.registerAll();
 
