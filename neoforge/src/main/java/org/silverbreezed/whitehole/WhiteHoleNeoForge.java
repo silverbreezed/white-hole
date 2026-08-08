@@ -16,7 +16,7 @@ public class WhiteHoleNeoForge {
         org.silverbreezed.whitehole.item.ModItemsNeoForge.register(eventBus);
 
         org.silverbreezed.whitehole.manager.ConfigManager.load();
-        LoggerFactory.getLogger(Constants.MOD_ID).info("Mod Config:\n{}", new GsonBuilder().setPrettyPrinting().create().toJson(ConfigManager.getModConfig()));
+        LoggerFactory.getLogger(Constants.MOD_ID).info("{}", new GsonBuilder().setPrettyPrinting().create().toJson(ConfigManager.getModConfig()));
 
         // This method is invoked by the NeoForge mod loader when it is ready
         // to load your mod. You can access NeoForge and Common code in this

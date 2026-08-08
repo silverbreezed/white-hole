@@ -11,7 +11,6 @@ import net.minecraft.world.level.material.MapColor;
 
 public class ModBlocks {
 
-    // 1. DEKLARASI IDENTITAS MUTLAK (Krusial untuk sistem 26.2)
     public static final ResourceKey<Block> ALTAR_BLOCK_KEY = ResourceKey.create(
             Registries.BLOCK, Identifier.fromNamespaceAndPath("whitehole", "white_hole_altar")
     );
@@ -19,7 +18,6 @@ public class ModBlocks {
             Registries.ITEM, Identifier.fromNamespaceAndPath("whitehole", "white_hole_altar")
     );
 
-    // 2. PABRIK BLOK: Hanya mengembalikan objek Blok murni, TANPA mendaftarkannya
     public static Block createAltarBlock() {
         return new WhiteHoleAltarBlock(
                 BlockBehaviour.Properties.of()
@@ -32,7 +30,6 @@ public class ModBlocks {
         );
     }
 
-    // 3. PABRIK ITEM: Menerima Blok yang sudah jadi dan membungkusnya menjadi Item
     public static BlockItem createAltarBlockItem(Block blockTarget) {
         return new BlockItem(
                 blockTarget,

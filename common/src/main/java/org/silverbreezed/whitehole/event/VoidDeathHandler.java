@@ -31,15 +31,11 @@ public class VoidDeathHandler {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    // Fungsi untuk mendapatkan folder simpanan khusus di dalam folder world server mabar Anda
     private static File getSaveFile(Level level, UUID playerUUID) {
-        // 1. Ambil folder pangkalan utama server mabar (Dedicated Server root)
         File serverRoot = Objects.requireNonNull(level.getServer()).getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).toFile();
 
-        // 2. Arahkan secara dinamis ke dalam sub-folder penyimpanan duniaaktif resmi ("world/data/")
         File dataDir = new File(serverRoot, "data");
 
-        // 3. Buat folder kustom "whitehole_data" tepat di dalam folder world/data/ tersebut
         File whiteHoleDir = new File(dataDir, Constants.MOD_ID + "_data");
         if (!whiteHoleDir.exists()) {
             whiteHoleDir.mkdirs();
@@ -48,15 +44,9 @@ public class VoidDeathHandler {
         return new File(whiteHoleDir, playerUUID.toString() + ".json");
     }
 
-
-    /**
-     * 1. PENCEGAT KEMATIAN: Menangkap item dan langsung menulisnya ke file JSON fisik di harddisk!
-     */
     public static boolean handlePlayerVoidDeath(ServerPlayer player, DamageSource source) {
         ServerLevel playerLevel = player.level();
         ModConfig modConfig = ConfigManager.getModConfig();
-
-        LoggerFactory.getLogger(Constants.MOD_ID).info("Void Handler:\n{}", GSON.toJson(modConfig));
 
         if (source.is(DamageTypes.FELL_OUT_OF_WORLD) && ((playerLevel.dimension() == ServerLevel.OVERWORLD && modConfig.recoverItemFromOverworldVoid) || (playerLevel.dimension() == ServerLevel.END && modConfig.recoverItemFromEndVoid))) {
             UUID playerUUID = player.getUUID();
@@ -65,12 +55,10 @@ public class VoidDeathHandler {
             List<ItemStack> savedInventory = new ArrayList<>();
             boolean hasNewItems = false;
 
-            // Membaca item lama jika ada (Sistem Penggabungan/Merge Mandiri)
             if (hasSavedItems(level, playerUUID)) {
                 savedInventory.addAll(getSavedItemsFromDisk(level, playerUUID));
             }
 
-            // Menyalin seluruh isi tas pemain saat ini
             for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                 ItemStack stack = player.getInventory().getItem(i);
                 if (!stack.isEmpty()) {
@@ -80,7 +68,6 @@ public class VoidDeathHandler {
             }
 
             if (hasNewItems) {
-                // MENULIS DATA KE DISK SECARA MANDIRI
                 saveItemsToDisk(level, playerUUID, savedInventory);
 
                 System.out.println("[White Hole STDOUT]: Inventory successfully saved to custom JSON for " + player.getName().getString());
@@ -91,12 +78,9 @@ public class VoidDeathHandler {
         return false;
     }
 
-    /**
-     * 2. LOGIKA UTAMA AMBIL BARANG UNTUK ALTAR
-     */
     public static List<ItemStack> getAndClearSavedItems(Level level, UUID playerUUID) {
         List<ItemStack> items = getSavedItemsFromDisk(level, playerUUID);
-        // Hapus file JSON fisik setelah barang berhasil dimuntahkan Altar (Anti-Duplikasi)
+
         File file = getSaveFile(level, playerUUID);
         if (file.exists()) {
             file.delete();
@@ -104,16 +88,11 @@ public class VoidDeathHandler {
         return items;
     }
 
-    /**
-     * 3. PENGECEKAN KETERSEDIAAN DATA UNTUK ALTAR
-     */
     public static boolean hasSavedItems(Level level, UUID playerUUID) {
         File file = getSaveFile(level, playerUUID);
         // Return if ...
         return file.exists() && file.length() > 0;
     }
-
-    // --- MEKANISME EKSTERNAL BACA-TULIS FILE JSON FISIK (STANDAR 26.2 MURNI) ---
 
     private static void saveItemsToDisk(Level level, UUID playerUUID, List<ItemStack> items) {
         File file = getSaveFile(level, playerUUID);
@@ -125,7 +104,6 @@ public class VoidDeathHandler {
             com.google.gson.JsonArray array = new com.google.gson.JsonArray();
 
             for (ItemStack stack : items) {
-                // Mengonversi komponen data item modern 26.2 menjadi teks JSON bersih
                 ItemStack.CODEC.encodeStart(ops, stack).result().ifPresent(array::add);
             }
 
@@ -149,7 +127,6 @@ public class VoidDeathHandler {
             if (root.has("saved_items")) {
                 com.google.gson.JsonArray array = root.getAsJsonArray("saved_items");
                 for (com.google.gson.JsonElement element : array) {
-                    // Memuat kembali komponen data item dari teks JSON fisik
                     ItemStack.CODEC.parse(ops, element).result().ifPresent(list::add);
                 }
             }

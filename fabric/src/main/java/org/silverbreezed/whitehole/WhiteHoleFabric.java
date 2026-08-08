@@ -19,7 +19,7 @@ public class WhiteHoleFabric implements ModInitializer {
 
         try {
             ConfigManager.load();
-            LOGGER.info("Mod Config:\n{}", GSON.toJson(ConfigManager.getModConfig()));
+            LOGGER.info("{}", GSON.toJson(ConfigManager.getModConfig()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

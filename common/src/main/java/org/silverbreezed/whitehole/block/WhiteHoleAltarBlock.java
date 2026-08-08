@@ -38,16 +38,13 @@ import java.util.UUID;
 
 public class WhiteHoleAltarBlock extends Block {
 
-    // 1. Membuat properti status AKTIF (bawaan vanilla Mojang)
     public static final BooleanProperty ACTIVE = BlockStateProperties.LIT;
     private static UUID lastPlacerUUID = null;
 
-    // Kamus data untuk mencatat waktu cooldown pemain (1 menit = 1200 tick game)
     private static final HashMap<UUID, Long> ALTAR_COOLDOWN = new HashMap<>();
 
     public WhiteHoleAltarBlock(Properties properties) {
         super(properties);
-        // Default saat ditaruh atau ditemukan di dunia adalah MATI / RUSAK
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(ACTIVE, false)
                 .setValue(FACING, Direction.NORTH));
@@ -60,7 +57,6 @@ public class WhiteHoleAltarBlock extends Block {
         UUID playerUUID = player.getUUID();
         long gameTime = level.getGameTime();
 
-        // 1. CEK COOLDOWN 1 MENIT
         if (ALTAR_COOLDOWN.containsKey(playerUUID)) {
             long timePassed = gameTime - ALTAR_COOLDOWN.get(playerUUID);
             ModConfig modConfig = ConfigManager.getModConfig();
@@ -73,11 +69,9 @@ public class WhiteHoleAltarBlock extends Block {
             }
         }
 
-        // --- RITUAL DIMULAI: PEMASANGAN MATA KOSMIK ---
+        // ---  BEGINNING: COSMIC EYE ---
         if (!hasEye) {
             if (heldItem.is(ModItems.COSMIC_EYE)) {
-
-                // Nyalakan mata di pilar secara visual (LIT = true)
                 level.setBlock(pos, state.setValue(ACTIVE, true), 3);
                 if (!player.getAbilities().instabuild) {
                     heldItem.shrink(1);
@@ -104,7 +98,7 @@ public class WhiteHoleAltarBlock extends Block {
     }
 
     /**
-     * JEDA WAKTU 3 DETIK HABIS: ALUR MUNTAH OTOMATIS DIEKSEKUSI DI SINI
+     * 3 SECONDS DELAY TO SHOW OUTPUT
      */
     @Override
     protected void tick(@NonNull BlockState state, @NonNull ServerLevel serverLevel, @NonNull BlockPos pos, @NonNull RandomSource random) {
@@ -118,22 +112,19 @@ public class WhiteHoleAltarBlock extends Block {
         double spawnY = pos.getY() + 1.2;
         double spawnZ = pos.getZ() + 0.5;
 
-        // --- SKENARIO A: BARANG ADA DI VOID (MUNTAHKAN BARANG SURVIVAL!) ---
+        // --- IF ITEMS EXISTS ---
         if (VoidDeathHandler.hasSavedItems(serverLevel, lastPlacerUUID)) {
             List<ItemStack> savedItems = VoidDeathHandler.getAndClearSavedItems(serverLevel, lastPlacerUUID);
 
             if (savedItems != null) {
-                // Semburkan semua zirah dan senjata melayang ke atas
                 for (ItemStack stack : savedItems) {
                     ItemEntity itemEntity = new ItemEntity(serverLevel, spawnX, spawnY, spawnZ, stack);
                     itemEntity.setDeltaMovement((random.nextDouble() - 0.5) * 0.2, 0.35, (random.nextDouble() - 0.5) * 0.2);
                     serverLevel.addFreshEntity(itemEntity);
                 }
 
-                // Matikan kembali kelopak mata pilar (Mata hancur melebur jadi energi fusi)
                 serverLevel.setBlock(pos, state.setValue(ACTIVE, false), 3);
 
-                // Aktifkan cooldown 1 menit agar tidak bisa dispam
                 ALTAR_COOLDOWN.put(lastPlacerUUID, gameTime);
 
                 // Audio ledakan kosmik sip
@@ -144,17 +135,14 @@ public class WhiteHoleAltarBlock extends Block {
                 }
             }
         }
-        // --- SKENARIO B: BARANG KOSONG (MUNTAHKAN KEMBALI MATANYA!) ---
+        // --- IF NO ITEMS ---
         else {
-            // Matikan kembali kelopak mata pilar menjadi terpejam
             serverLevel.setBlock(pos, state.setValue(ACTIVE, false), 3);
 
-            // Melempar kembali item Cosmic Eye fisik ke lantai
             ItemEntity eyeDrop = new ItemEntity(serverLevel, spawnX, spawnY, spawnZ, new ItemStack(ModItems.COSMIC_EYE));
             eyeDrop.setDeltaMovement((random.nextDouble() - 0.5) * 0.1, 0.2, (random.nextDouble() - 0.5) * 0.1);
             serverLevel.addFreshEntity(eyeDrop);
 
-            // Audio penolakan energi tersendat
             serverLevel.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.2F, 1.0F);
 
             assert player != null;
@@ -163,24 +151,21 @@ public class WhiteHoleAltarBlock extends Block {
             ));
         }
 
-        lastPlacerUUID = null; // Riset pelacak pemain untuk ritual berikutnya
+        lastPlacerUUID = null;
     }
 
     @Override
     protected float getShadeBrightness(@NonNull BlockState state, @NonNull BlockGetter level, @NonNull BlockPos pos) {
-        return 1.0F; // Mencegah bayangan hitam aneh di bawah celah Altar
+        return 1.0F;
     }
 
-    // 1. Daftarkan properti arah hadap horizontal (North, South, East, West)
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    // 2. Kode ajaib agar blok otomatis menghadap ke pemain saat ditaruh di survival
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
-    // 3. Wajib daftarkan FACING ke dalam sistem mesin state Minecraft
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, ACTIVE);
@@ -198,33 +183,28 @@ public class WhiteHoleAltarBlock extends Block {
     public void animateTick(BlockState state, @NonNull Level level, BlockPos pos, net.minecraft.util.@NonNull RandomSource random) {
         boolean isActive = state.getValue(ACTIVE);
 
-        // Menentukan titik pusat tepat di atas mangkuk pedestal Altar (Y + 1.1)
         double x = pos.getX() + 0.5;
         double y = pos.getY() + 1.1;
         double z = pos.getZ() + 0.5;
 
         boolean isEyePlaced = state.getValue(ACTIVE);
 
-        // Jika mata sudah terpasang (isEyePlaced = true), barulah badai partikel kosmik di atas mangkuk menyala berputar!
         if (isEyePlaced) {
-            // ... kode perulangan partikel REVERSE_PORTAL dan FIREWORK Anda kemarin ...
+            // Particles
             for (int i = 0; i < 3; i++) {
                 double angle = random.nextDouble() * 2.0 * Math.PI;
-                double radius = 0.25 + (random.nextDouble() * 0.2); // Jari-jari lingkaran pusaran
+                double radius = 0.25 + (random.nextDouble() * 0.2);
 
-                // Menghitung koordinat partikel di sekeliling pusat altar
                 double particleX = x + Math.cos(angle) * radius;
                 double particleZ = z + Math.sin(angle) * radius;
 
-                // Menggunakan REVERSE_PORTAL agar partikel bergerak memancar keluar (Konsep Lubang Putih)
                 level.addParticle(ParticleTypes.REVERSE_PORTAL, particleX, y, particleZ,
-                        (x - particleX) * -0.08, // Dorongan keluar horizontal
-                        0.015D,                  // Melayang ke atas secara perlahan
+                        (x - particleX) * -0.08,
+                        0.015D,
                         (z - particleZ) * -0.08
                 );
             }
 
-            // Sesekali memunculkan kilatan bintang putih neon terang di pusat lubang
             if (random.nextInt(6) == 0) {
                 level.addParticle(ParticleTypes.FIREWORK, x, y + 0.05, z,
                         (random.nextDouble() - 0.5) * 0.03,

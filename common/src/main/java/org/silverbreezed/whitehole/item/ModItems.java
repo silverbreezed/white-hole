@@ -14,7 +14,6 @@ public class ModItems {
             Registries.ITEM, Identifier.fromNamespaceAndPath(Constants.MOD_ID, "cosmic_eye")
     );
 
-    // 2. BENTUK FISIK (Singleton). Dibuat satu kali, dipakai selamanya.
     public static final Item COSMIC_EYE = new Item(new Item.Properties()
             .setId(COSMIC_EYE_KEY)
             .rarity(Rarity.EPIC)

@@ -12,7 +12,7 @@ public class ModItemsNeoForge {
 
     public static final DeferredItem<Item> COSMIC_EYE = ITEMS.register(
             "cosmic_eye",
-            () -> ModItems.COSMIC_EYE // Mengambil objek Singleton fisik, bukan merakit baru
+            () -> ModItems.COSMIC_EYE
     );
 
     public static void register(IEventBus eventBus) {
