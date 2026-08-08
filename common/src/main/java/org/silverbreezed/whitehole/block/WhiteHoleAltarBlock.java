@@ -62,7 +62,7 @@ public class WhiteHoleAltarBlock extends Block {
             long timePassed = gameTime - ALTAR_COOLDOWN.get(playerUUID);
             if (timePassed < 1200) {
                 if (!level.isClientSide()) {
-                    player.sendSystemMessage(Component.literal("§6[White Hole] §cAltar sedang menstabilkan energi fusi. Tunggu §e" + ((1200 - timePassed) / 20) + " §cdetik."));
+                    player.sendSystemMessage(Component.literal("§f[White Hole] §cThe altar is cooldown. Wait §e" + ((1200 - timePassed) / 20) + " §cs."));
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -80,8 +80,8 @@ public class WhiteHoleAltarBlock extends Block {
 
                 if (!level.isClientSide()) {
                     lastPlacerUUID = playerUUID; // Kunci identitas pemain
-                    player.sendSystemMessage(Component.literal("§5[White Hole] §dMata Kosmik terpasang. Membuka gerbang singularitas hampa..."));
-                    level.playSound(null, pos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 0.8F, 1.10F);
+                    player.sendSystemMessage(Component.literal("§f[White Hole] §dCosmic Eye has installed. Opening the gate of the void singularity..."));
+                    level.playSound(null, pos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 0.3F, 1.30F);
                     level.playSound(null, pos, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 1.0F, 0.8F);
                     level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.5F, 1.10F);
 
@@ -91,7 +91,7 @@ public class WhiteHoleAltarBlock extends Block {
                 return InteractionResult.SUCCESS;
             } else {
                 if (!level.isClientSide()) {
-                    player.sendSystemMessage(Component.literal("§7Pilar Altar ini memiliki rongga kosong berbentuk mata. Carilah Cosmic Eye untuk memulai ritual."));
+                    player.sendSystemMessage(Component.literal("§7This altar pillar has an empty cavity in the shape of an eye. Use Cosmic Eye item to begin restoration."));
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -137,7 +137,7 @@ public class WhiteHoleAltarBlock extends Block {
                 serverLevel.playSound(null, pos, SoundEvents.WARDEN_SONIC_BOOM, SoundSource.BLOCKS, 1.0F, 1.1F);
 
                 if (player != null) {
-                    player.sendSystemMessage(Component.literal("§6[White Hole] §aSingularitas pecah! Seluruh materi Anda berhasil direkonstruksi!"));
+                    player.sendSystemMessage(Component.literal("§6[White Hole] §aThe singularity broke! All your materials have been successfully reconstructed."));
                 }
             }
         }
@@ -155,7 +155,7 @@ public class WhiteHoleAltarBlock extends Block {
             serverLevel.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.2F, 1.0F);
 
             if (player != null) {
-                player.sendSystemMessage(Component.literal("§6[White Hole] §cGerbang menolak masuk! Tidak ada jalinan jiwa Anda yang tertinggal di dasar Void."));
+                player.sendSystemMessage(Component.literal("§6[White Hole] §cThe gate refuses entry! No such materials or items on the last void death."));
             }
         }
 
