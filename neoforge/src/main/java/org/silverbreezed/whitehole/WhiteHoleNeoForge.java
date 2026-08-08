@@ -3,7 +3,6 @@ package org.silverbreezed.whitehole;
 import com.google.gson.GsonBuilder;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import org.silverbreezed.whitehole.manager.ConfigManager;
 import org.slf4j.LoggerFactory;
 
@@ -13,8 +12,8 @@ import java.io.IOException;
 public class WhiteHoleNeoForge {
     public WhiteHoleNeoForge(IEventBus eventBus) throws IOException {
 
-        org.silverbreezed.whitehole.block.ModBlocks.registerAll();
-        org.silverbreezed.whitehole.item.ModItems.registerAll();
+        org.silverbreezed.whitehole.block.ModBlocksNeoForge.register(eventBus);
+        org.silverbreezed.whitehole.item.ModItemsNeoForge.register(eventBus);
 
         org.silverbreezed.whitehole.manager.ConfigManager.load();
         LoggerFactory.getLogger(Constants.MOD_ID).info("Mod Config:\n{}", new GsonBuilder().setPrettyPrinting().create().toJson(ConfigManager.getModConfig()));

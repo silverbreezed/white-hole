@@ -3,7 +3,6 @@ package org.silverbreezed.whitehole;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.api.ModInitializer;
-import org.silverbreezed.whitehole.config.ModConfig;
 import org.silverbreezed.whitehole.manager.ConfigManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +14,8 @@ public class WhiteHoleFabric implements ModInitializer {
     @Override
     public void onInitialize() {
 
-        org.silverbreezed.whitehole.block.ModBlocks.registerAll();
-        org.silverbreezed.whitehole.item.ModItems.registerAll();
+        org.silverbreezed.whitehole.block.ModBlocksFabric.register();
+        org.silverbreezed.whitehole.item.ModItemsFabric.register();
 
         try {
             ConfigManager.load();

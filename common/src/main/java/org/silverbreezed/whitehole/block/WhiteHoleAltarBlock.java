@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -84,12 +85,10 @@ public class WhiteHoleAltarBlock extends Block {
 
                 if (!level.isClientSide()) {
                     lastPlacerUUID = playerUUID; // Kunci identitas pemain
-                    player.sendSystemMessage(Component.literal("§f[White Hole] §dCosmic Eye has installed. Opening the gate of the void singularity..."));
-                    level.playSound(null, pos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 0.3F, 1.30F);
-                    level.playSound(null, pos, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 1.0F, 0.8F);
+                    player.sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dCosmic Eye has installed. Opening the gate of the void singularity..."));
+                    level.playSound(null, pos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 0.3F, 1.05F);
                     level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.5F, 1.10F);
 
-                    // Jadwalkan waktu tunggu otomatis selama 3 detik (60 ticks)
                     level.scheduleTick(pos, this, 60);
                 }
                 return InteractionResult.SUCCESS;
@@ -141,7 +140,7 @@ public class WhiteHoleAltarBlock extends Block {
                 serverLevel.playSound(null, pos, SoundEvents.WARDEN_SONIC_BOOM, SoundSource.BLOCKS, 1.0F, 1.1F);
 
                 if (player != null) {
-                    player.sendSystemMessage(Component.literal("§6[White Hole] §aThe singularity broke! All your materials have been successfully reconstructed."));
+                    player.sendSystemMessage(Component.literal("§f[§lWhite Hole§r] §7The singularity broke! All your materials have been successfully reconstructed."));
                 }
             }
         }
@@ -158,9 +157,10 @@ public class WhiteHoleAltarBlock extends Block {
             // Audio penolakan energi tersendat
             serverLevel.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.2F, 1.0F);
 
-            if (player != null) {
-                player.sendSystemMessage(Component.literal("§6[White Hole] §cThe gate refuses entry! No such materials or items on the last void death."));
-            }
+            assert player != null;
+            player.sendSystemMessage(Component.literal(
+            "§4[§lWhite Hole§r§4] §cThe gate refuses entry! No such materials or items on the last void death"
+            ));
         }
 
         lastPlacerUUID = null; // Riset pelacak pemain untuk ritual berikutnya
