@@ -1,9 +1,14 @@
 package org.silverbreezed.whitehole;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.minecraft.server.level.ServerPlayer;
-import org.silverbreezed.whitehole.event.VoidDeathHandler;
+import org.silverbreezed.whitehole.config.ModConfig;
+import org.silverbreezed.whitehole.manager.ConfigManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 public class WhiteHoleFabric implements ModInitializer {
 
@@ -13,6 +18,13 @@ public class WhiteHoleFabric implements ModInitializer {
         org.silverbreezed.whitehole.block.ModBlocks.registerAll();
         org.silverbreezed.whitehole.item.ModItems.registerAll();
 
+        try {
+            ConfigManager.load();
+            LOGGER.info("Mod Config:\n{}", GSON.toJson(ConfigManager.getModConfig()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         // This method is invoked by the Fabric mod loader when it is ready
         // to load your mod. You can access Fabric and Common code in this
         // project.
@@ -21,4 +33,12 @@ public class WhiteHoleFabric implements ModInitializer {
         Constants.LOG.info("Enabled White hole for [FABRIC]!");
         CommonClass.init();
     }
+
+    public static final Logger LOGGER =
+            LoggerFactory.getLogger(Constants.MOD_ID);
+
+    private static final Gson GSON =
+            new GsonBuilder()
+                    .setPrettyPrinting()
+                    .create();
 }

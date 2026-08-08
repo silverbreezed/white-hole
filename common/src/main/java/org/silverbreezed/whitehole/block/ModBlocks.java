@@ -44,8 +44,6 @@ public class ModBlocks {
 
         );
 
-
-
         // Mendaftarkan fisik bloknya menggunakan RegistryKey bawaan 26.2
         Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
 

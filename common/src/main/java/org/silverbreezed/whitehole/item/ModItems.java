@@ -7,13 +7,14 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import org.silverbreezed.whitehole.Constants;
 
 public class ModItems {
 
     public static Item COSMIC_EYE;
 
     public static void registerAll() {
-        Identifier id = Identifier.fromNamespaceAndPath("whitehole", "cosmic_eye");
+        Identifier id = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "cosmic_eye");
         ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, id);
 
         // Membuat item dengan efek kilau magis (Epic Rarity)

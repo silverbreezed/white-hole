@@ -1,8 +1,11 @@
 package org.silverbreezed.whitehole.platform;
 
+import net.neoforged.fml.loading.FMLPaths;
 import org.silverbreezed.whitehole.platform.services.IPlatformHelper;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
+
+import java.nio.file.Path;
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
 
@@ -22,5 +25,10 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     public boolean isDevelopmentEnvironment() {
 
         return !FMLLoader.getCurrent().isProduction();
+    }
+
+    @Override
+    public Path getConfigDirectory() {
+        return FMLPaths.CONFIGDIR.get();
     }
 }

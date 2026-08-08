@@ -6,8 +6,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,6 +13,11 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.silverbreezed.whitehole.Constants;
+import org.silverbreezed.whitehole.config.ModConfig;
+import org.silverbreezed.whitehole.manager.ConfigManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -37,7 +40,7 @@ public class VoidDeathHandler {
         File dataDir = new File(serverRoot, "data");
 
         // 3. Buat folder kustom "whitehole_data" tepat di dalam folder world/data/ tersebut
-        File whiteHoleDir = new File(dataDir, "whitehole_data");
+        File whiteHoleDir = new File(dataDir, Constants.MOD_ID + "_data");
         if (!whiteHoleDir.exists()) {
             whiteHoleDir.mkdirs();
         }
@@ -50,7 +53,12 @@ public class VoidDeathHandler {
      * 1. PENCEGAT KEMATIAN: Menangkap item dan langsung menulisnya ke file JSON fisik di harddisk!
      */
     public static boolean handlePlayerVoidDeath(ServerPlayer player, DamageSource source) {
-        if (source.is(DamageTypes.FELL_OUT_OF_WORLD)) {
+        ServerLevel playerLevel = player.level();
+        ModConfig modConfig = ConfigManager.getModConfig();
+
+        LoggerFactory.getLogger(Constants.MOD_ID).info("Void Handler:\n{}", GSON.toJson(modConfig));
+
+        if (source.is(DamageTypes.FELL_OUT_OF_WORLD) && ((playerLevel.dimension() == ServerLevel.OVERWORLD && modConfig.recoverItemFromOverworldVoid) || (playerLevel.dimension() == ServerLevel.END && modConfig.recoverItemFromEndVoid))) {
             UUID playerUUID = player.getUUID();
             Level level = player.level();
 
@@ -101,6 +109,7 @@ public class VoidDeathHandler {
      */
     public static boolean hasSavedItems(Level level, UUID playerUUID) {
         File file = getSaveFile(level, playerUUID);
+        // Return if ...
         return file.exists() && file.length() > 0;
     }
 

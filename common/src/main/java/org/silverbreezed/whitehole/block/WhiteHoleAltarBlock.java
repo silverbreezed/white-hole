@@ -26,8 +26,10 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.NonNull;
+import org.silverbreezed.whitehole.config.ModConfig;
 import org.silverbreezed.whitehole.event.VoidDeathHandler;
 import org.silverbreezed.whitehole.item.ModItems;
+import org.silverbreezed.whitehole.manager.ConfigManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +62,9 @@ public class WhiteHoleAltarBlock extends Block {
         // 1. CEK COOLDOWN 1 MENIT
         if (ALTAR_COOLDOWN.containsKey(playerUUID)) {
             long timePassed = gameTime - ALTAR_COOLDOWN.get(playerUUID);
-            if (timePassed < 1200) {
+            ModConfig modConfig = ConfigManager.getModConfig();
+
+            if (modConfig.altarCooldown && timePassed < modConfig.defaultAltarCooldown) {
                 if (!level.isClientSide()) {
                     player.sendSystemMessage(Component.literal("§f[White Hole] §cThe altar is cooldown. Wait §e" + ((1200 - timePassed) / 20) + " §cs."));
                 }
