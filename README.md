@@ -1,32 +1,32 @@
-# MultiLoader Template
+# The White Hole Altar: Save Your Gear From The Void!
 
-This project provides a Gradle project template that can compile Minecraft mods for multiple modloaders using a common project for the sources. This project does not require any third party libraries or dependencies. If you have any questions or want to discuss the project, please join our [Discord](https://discord.myceliummod.network).
+This mod designed to cure the ultimate Minecraft frustration: **dying in the void** with absolutely zero chance of recovery.
 
-## Getting Started
+lore-friendly, balanced quality-of-life, and **Multiplayer friendly**!
 
-### IntelliJ IDEA
-This guide will show how to import the MultiLoader Template into IntelliJ IDEA. The setup process is roughly equivalent to setting up the modloaders independently and should be very familiar to anyone who has worked with their MDKs.
+> **Not literally a *white hole* physics object**. Instead, it taps into an invisible cosmic force that expels what a Black Hole (the Void) has swallowed. This power is funneled directly through an ancient anchor:
 
-1. Clone or download this repository to your computer.
-2. Configure the project by setting the properties in the `gradle.properties` file. You will also need to change the `rootProject.name`  property in `settings.gradle`, this should match the folder name of your project, or else IDEA may complain.
-3. Open the template's root folder as a new project in IDEA. This is the folder that contains this README.md file and the gradlew executable.
-4. If your default JVM/JDK is not Java 25 you will encounter an error when opening the project. This error is fixed by going to `File > Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JVM` and changing the value to a valid Java 25 JVM. You will also need to set the Project SDK to Java 25. This can be done by going to `File > Project Structure > Project SDK`. Once both have been set open the Gradle tab in IDEA and click the refresh button to reload the project.
-5. Open your Run/Debug Configurations. Under the `Application` category there should now be options to run Fabric and NeoForge projects. Select one of the client options and try to run it.
-6. Assuming you were able to run the game in step 5 your workspace should now be set up.
+![White Hole Altar](https://raw.githubusercontent.com/silverbreezed/assets/refs/heads/main/altar.gif)
 
-### Eclipse
-While it is possible to use this template in Eclipse it is not recommended. During the development of this template multiple critical bugs and quirks related to Eclipse were found at nearly every level of the required build tools. While we continue to work with these tools to report and resolve issues support for projects like these are not there yet. For now Eclipse is considered unsupported by this project. The development cycle for build tools is notoriously slow so there are no ETAs available.
+---
 
-## Development Guide
-When using this template the majority of your mod should be developed in the `common` project. The `common` project is compiled against the vanilla game and is used to hold code that is shared between the different loader-specific versions of your mod. The `common` project has no knowledge or access to ModLoader specific code, apis, or concepts. Code that requires something from a specific loader must be done through the project that is specific to that loader, such as the `fabric` or `neoforge` projects.
+## 💢 The Problem
+As a survival player, you are exploring The End dimension, and you slip. In vanilla Minecraft, **the void destroys everything**. **your hard-gained end game gear literally is gone forever**.
 
-Loader specific projects such as the `fabric` and `neoforge` project are used to load the `common` project into the game. These projects also define code that is specific to that loader. Loader specific projects can access all the code in the `common` project. It is important to remember that the `common` project can not access code from loader specific projects.
+## 🛡️ The Solution: The White Hole Altar
+This mod introduces a high-risk, high-reward mechanic to insure your items from the last death in the void.
 
-## Removing Platforms and Loaders
-While this template has support for many modloaders, new loaders may appear in the future, and existing loaders may become less relevant.
+* **The White Hole Altar:** A mysterious, ancient block generated naturally at the center of **Ancient Cities** (Overworld).
+* **The Cosmic Eye:** A cosmic item that can be found at ancient city chests and offered to the Altar.
+* **Void Salvation:** If you die in the void, your lost inventory is safely stored. Return to the Altar, insert the **Cosmic Eye**, and white hole will recover your items!
 
-Removing loader specific projects is as easy as deleting the folder, and removing the `include("projectname")` line from the `settings.gradle` file.
-For example if you wanted to remove support for `forge` you would follow the following steps:
+## 🔎 Where to Find the Cosmic Eye?
+The Cosmic Eye is generated naturally at **Ancient City chests** with a rarity same as enchanted golden apple.
 
-1. Delete the subproject folder. For example, delete `MultiLoader-Template/forge`.
-2. Remove the project from `settings.gradle`. For example, remove `include("forge")`. 
+![Cosmic Eye Item](https://cdn.modrinth.com/data/cached_images/ebec0951770750fb5a3622e5237b0a59e259f39c.png)
+
+## ⚙️ Important Notes
+
+**Can this mod recover items that I lost BEFORE installing it?**
+
+**No ❌.** The mod can only log and track your inventory data for deaths that occur **after** the mod is successfully installed and active in your world.
