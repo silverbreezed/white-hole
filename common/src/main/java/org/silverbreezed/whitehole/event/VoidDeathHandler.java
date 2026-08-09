@@ -132,7 +132,9 @@ public class VoidDeathHandler {
                 ModConfig config = ConfigManager.getModConfig();
 
                 if (records.size() >= config.maxSavedItemSnapshots) {
-                    records.removeFirst();
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§c[§lWhite Hole§r§c] White Hole Capacity is Full and your items is not saved! You must bring back your past item."));
+
+                    return false;
                 }
 
                 records.addLast(new DeathRecord(System.currentTimeMillis(), savedInventory));
