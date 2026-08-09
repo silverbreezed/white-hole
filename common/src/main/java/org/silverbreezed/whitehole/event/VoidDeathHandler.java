@@ -112,7 +112,11 @@ public class VoidDeathHandler {
         ServerLevel playerLevel = player.level();
         ModConfig modConfig = ConfigManager.getModConfig();
 
-        if (source.is(DamageTypes.FELL_OUT_OF_WORLD) && ((playerLevel.dimension() == ServerLevel.OVERWORLD && modConfig.recoverItemsFromOverworldVoid) || (playerLevel.dimension() == ServerLevel.END && modConfig.recoverItemsFromEndVoid))) {
+        if (source.is(DamageTypes.FELL_OUT_OF_WORLD) &&
+                ((playerLevel.dimension() == ServerLevel.OVERWORLD && modConfig.recoverItemsFromOverworldVoid) ||
+                (playerLevel.dimension() == ServerLevel.END && modConfig.recoverItemsFromEndVoid) ||
+                (playerLevel.dimension() == ServerLevel.NETHER && modConfig.recoverItemsFromNetherVoid))
+        ) {
             UUID playerUUID = player.getUUID();
             Level level = player.level();
 
