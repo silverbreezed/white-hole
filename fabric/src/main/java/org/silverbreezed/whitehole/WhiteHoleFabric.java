@@ -17,14 +17,15 @@ public class WhiteHoleFabric implements ModInitializer {
         org.silverbreezed.whitehole.block.ModBlocksFabric.register();
         org.silverbreezed.whitehole.item.ModItemsFabric.register();
 
+        try {
+            ConfigManager.load();
+            LOGGER.info("{}", GSON.toJson(ConfigManager.getModConfig()));
 
-        // This method is invoked by the Fabric mod loader when it is ready
-        // to load your mod. You can access Fabric and Common code in this
-        // project.
-
-        // Use Fabric to bootstrap the Common mod.
-        Constants.LOG.info("Enabled White hole for [FABRIC]!");
-        CommonClass.init();
+            CommonClass.init();
+            Constants.LOG.info("Enabled White hole for [FABRIC]!");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static final Logger LOGGER =
