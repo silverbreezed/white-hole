@@ -1,11 +1,10 @@
 package org.silverbreezed.whitehole.event;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,12 +15,9 @@ import net.minecraft.world.level.Level;
 import org.silverbreezed.whitehole.Constants;
 import org.silverbreezed.whitehole.config.ModConfig;
 import org.silverbreezed.whitehole.manager.ConfigManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -91,8 +87,11 @@ public class VoidDeathHandler {
 
                 saveItemsToDisk(level, playerUUID, savedInventory);
 
-                System.out.println("Inventory successfully saved to JSON file for " + player.getName().getString());
+                player.sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dYou death in the void. You can brings back your items using White Hole Altar in Ancient City."));
                 player.getInventory().clearContent();
+
+                System.out.println("Inventory successfully saved to JSON file for " + player.getName().getString());
+
                 return true;
             }
         }
@@ -125,7 +124,7 @@ public class VoidDeathHandler {
         root.add("saved_items", array);
 
         org.silverbreezed.whitehole.manager.AsyncIOManager.writeJsonAsync(file, root).thenRun(() -> {
-            Constants.LOG.info("[White Hole IO]: Inventory successfully saved to disk asynchornously for " + playerUUID);
+            Constants.LOG.info("Inventory successfully saved to disk asynchornously for " + playerUUID);
         });
     }
 
