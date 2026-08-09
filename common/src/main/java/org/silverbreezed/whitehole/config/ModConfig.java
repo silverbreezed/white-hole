@@ -5,6 +5,8 @@ public class ModConfig {
     public boolean recoverItemFromEndVoid = true;
     public boolean recoverItemFromDespawn = true;
 
+    public int maxSavedItemSnapshots = 3;
+
     public boolean altarCooldown = true;
     public int defaultAltarCooldown = 1200;
 }

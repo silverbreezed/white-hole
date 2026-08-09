@@ -112,27 +112,25 @@ public class WhiteHoleAltarBlock extends Block {
         double spawnY = pos.getY() + 1.2;
         double spawnZ = pos.getZ() + 0.5;
 
+        org.silverbreezed.whitehole.event.DeathRecord lastDeath = org.silverbreezed.whitehole.event.VoidDeathHandler.popLastDeathRecord(serverLevel, lastPlacerUUID);
+
         // --- IF ITEMS EXISTS ---
-        if (VoidDeathHandler.hasSavedItems(serverLevel, lastPlacerUUID)) {
-            List<ItemStack> savedItems = VoidDeathHandler.getAndClearSavedItems(serverLevel, lastPlacerUUID);
+        if (lastDeath != null) {
+            List<ItemStack> savedItems = lastDeath.getItems();
 
-            if (savedItems != null) {
-                for (ItemStack stack : savedItems) {
-                    ItemEntity itemEntity = new ItemEntity(serverLevel, spawnX, spawnY, spawnZ, stack);
-                    itemEntity.setDeltaMovement((random.nextDouble() - 0.5) * 0.2, 0.35, (random.nextDouble() - 0.5) * 0.2);
-                    serverLevel.addFreshEntity(itemEntity);
-                }
+            for (ItemStack stack : savedItems) {
+                ItemEntity itemEntity = new ItemEntity(serverLevel, spawnX, spawnY, spawnZ, stack);
+                itemEntity.setDeltaMovement((random.nextDouble() - 0.5) * 0.2, 0.35, (random.nextDouble() - 0.5) * 0.2);
+                serverLevel.addFreshEntity(itemEntity);
+            }
 
-                serverLevel.setBlock(pos, state.setValue(ACTIVE, false), 3);
+            serverLevel.setBlock(pos, state.setValue(ACTIVE, false), 3);
+            ALTAR_COOLDOWN.put(lastPlacerUUID, gameTime);
 
-                ALTAR_COOLDOWN.put(lastPlacerUUID, gameTime);
+            serverLevel.playSound(null, pos, SoundEvents.WARDEN_SONIC_BOOM, SoundSource.BLOCKS, 1.0F, 1.1F);
 
-                // Audio ledakan kosmik sip
-                serverLevel.playSound(null, pos, SoundEvents.WARDEN_SONIC_BOOM, SoundSource.BLOCKS, 1.0F, 1.1F);
-
-                if (player != null) {
-                    player.sendSystemMessage(Component.literal("§f[§lWhite Hole§r] §7The singularity broke! All your materials have been successfully reconstructed."));
-                }
+            if (player != null) {
+                player.sendSystemMessage(Component.literal("§f[§lWhite Hole§r] §7The singularity broke! All your materials have been successfully reconstructed."));
             }
         }
         // --- IF NO ITEMS ---
@@ -145,10 +143,11 @@ public class WhiteHoleAltarBlock extends Block {
 
             serverLevel.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.2F, 1.0F);
 
-            assert player != null;
-            player.sendSystemMessage(Component.literal(
-            "§4[§lWhite Hole§r§4] §cThe gate refuses entry! No such materials or items on the last void death"
-            ));
+            if (player != null) {
+                player.sendSystemMessage(Component.literal(
+                        "§4[§lWhite Hole§r§4] §cThe gate refuses entry! No such materials or items on the last void death"
+                ));
+            }
         }
 
         lastPlacerUUID = null;

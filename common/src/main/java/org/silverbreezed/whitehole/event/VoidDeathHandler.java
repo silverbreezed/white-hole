@@ -1,10 +1,6 @@
 package org.silverbreezed.whitehole.event;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.mojang.serialization.JsonOps;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,12 +13,11 @@ import org.silverbreezed.whitehole.config.ModConfig;
 import org.silverbreezed.whitehole.manager.ConfigManager;
 
 import java.io.File;
-import java.io.FileReader;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class VoidDeathHandler {
-    private static final Map<UUID, List<ItemStack>> IN_MEMORY_CACHE = new ConcurrentHashMap<>();
+    private static final Map<UUID, LinkedList<DeathRecord>> IN_MEMORY_CACHE = new ConcurrentHashMap<>();
 
     public static void loadPlayerDataAsync(ServerPlayer player) {
         UUID uuid = player.getUUID();
@@ -31,13 +26,48 @@ public class VoidDeathHandler {
         java.util.concurrent.CompletableFuture.runAsync(() -> {
             File file = getSaveFile(level, uuid);
             if (file.exists() && file.length() > 0) {
-                List<ItemStack> items = getSavedItemsFromDisk(level, uuid);
+                LinkedList<DeathRecord> items = loadRecordsFromDisk(level, uuid);
                 if (!items.isEmpty()) {
                     IN_MEMORY_CACHE.put(uuid, items);
                     Constants.LOG.info("Data loaded into cache for " + player.getName().getString());
                 }
             }
         }, org.silverbreezed.whitehole.manager.AsyncIOManager.IO_EXECUTOR);
+    }
+
+    public static LinkedList<DeathRecord> loadRecordsFromDisk(Level level, UUID playerUUID) {
+        LinkedList<DeathRecord> records = new LinkedList<>();
+        File file = getSaveFile(level, playerUUID);
+        if (!file.exists()) return records;
+
+        HolderLookup.Provider provider = level.registryAccess();
+        RegistryOps<com.google.gson.JsonElement> ops = RegistryOps.create(com.mojang.serialization.JsonOps.INSTANCE, provider);
+
+        try (java.io.FileReader reader = new java.io.FileReader(file)) {
+            com.google.gson.JsonObject root = com.google.gson.JsonParser.parseReader(reader).getAsJsonObject();
+
+            if (root.has("death_records")) {
+                com.google.gson.JsonArray recordsArray = root.getAsJsonArray("death_records");
+
+                for (com.google.gson.JsonElement recordElement : recordsArray) {
+                    com.google.gson.JsonObject recordObj = recordElement.getAsJsonObject();
+                    long timestamp = recordObj.has("timestamp") ? recordObj.get("timestamp").getAsLong() : 0L;
+
+                    List<ItemStack> items = new java.util.ArrayList<>();
+                    if (recordObj.has("items")) {
+                        com.google.gson.JsonArray itemsArray = recordObj.getAsJsonArray("items");
+                        for (com.google.gson.JsonElement itemElement : itemsArray) {
+                            ItemStack.CODEC.parse(ops, itemElement).result().ifPresent(items::add);
+                        }
+                    }
+                    records.add(new DeathRecord(timestamp, items));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return records;
     }
 
     public static void unloadPlayerData(ServerPlayer player) {
@@ -59,6 +89,25 @@ public class VoidDeathHandler {
         return new File(voidDir, playerUUID.toString() + ".json");
     }
 
+    public static DeathRecord popLastDeathRecord(Level level, UUID playerUUID) {
+        LinkedList<DeathRecord> records = IN_MEMORY_CACHE.get(playerUUID);
+
+        if (records != null && !records.isEmpty()) {
+            DeathRecord lastDeath = records.removeLast();
+
+            if (records.isEmpty()) {
+                File file = getSaveFile(level, playerUUID);
+                org.silverbreezed.whitehole.manager.AsyncIOManager.deleteFileAsync(file);
+            } else {
+                saveRecordsToDiskAsync(level, playerUUID, records);
+            }
+
+            return lastDeath;
+        }
+
+        return null;
+    }
+
     public static boolean handlePlayerVoidDeath(ServerPlayer player, DamageSource source) {
         ServerLevel playerLevel = player.level();
         ModConfig modConfig = ConfigManager.getModConfig();
@@ -70,10 +119,6 @@ public class VoidDeathHandler {
             List<ItemStack> savedInventory = new ArrayList<>();
             boolean hasNewItems = false;
 
-            if (hasSavedItems(level, playerUUID)) {
-                savedInventory.addAll(getSavedItemsFromDisk(level, playerUUID));
-            }
-
             for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                 ItemStack stack = player.getInventory().getItem(i);
                 if (!stack.isEmpty()) {
@@ -83,14 +128,18 @@ public class VoidDeathHandler {
             }
 
             if (hasNewItems) {
-                IN_MEMORY_CACHE.put(playerUUID, new ArrayList<>(savedInventory));
+                LinkedList<DeathRecord> records = IN_MEMORY_CACHE.computeIfAbsent(playerUUID, k -> new LinkedList<>());
+                ModConfig config = ConfigManager.getModConfig();
 
-                saveItemsToDisk(level, playerUUID, savedInventory);
+                if (records.size() >= config.maxSavedItemSnapshots) {
+                    records.removeFirst();
+                }
 
-                player.sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dYou death in the void. You can brings back your items using White Hole Altar in Ancient City."));
+                records.addLast(new DeathRecord(System.currentTimeMillis(), savedInventory));
+
+                saveRecordsToDiskAsync(level, playerUUID, records);
+
                 player.getInventory().clearContent();
-
-                System.out.println("Inventory successfully saved to JSON file for " + player.getName().getString());
 
                 return true;
             }
@@ -98,55 +147,40 @@ public class VoidDeathHandler {
         return false;
     }
 
-    public static List<ItemStack> getAndClearSavedItems(Level level, UUID playerUUID) {
-        List<ItemStack> items = IN_MEMORY_CACHE.remove(playerUUID);
+    public static LinkedList<DeathRecord> getAndClearSavedItems(Level level, UUID playerUUID) {
+        LinkedList<DeathRecord> items = IN_MEMORY_CACHE.remove(playerUUID);
 
         File file = getSaveFile(level, playerUUID);
         org.silverbreezed.whitehole.manager.AsyncIOManager.deleteFileAsync(file);
 
-        return items != null ? items : new ArrayList<>();
+        return items != null ? items : new LinkedList<>();
     }
 
-    public static boolean hasSavedItems(Level level, UUID playerUUID) {
-        return IN_MEMORY_CACHE.containsKey(playerUUID) && !IN_MEMORY_CACHE.get(playerUUID).isEmpty();
-    }
-
-    private static void saveItemsToDisk(Level level, UUID playerUUID, List<ItemStack> items) {
+    private static void saveRecordsToDiskAsync(Level level, UUID playerUUID, LinkedList<DeathRecord> records) {
         File file = getSaveFile(level, playerUUID);
         HolderLookup.Provider provider = level.registryAccess();
-        RegistryOps<com.google.gson.JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, provider);
+        RegistryOps<com.google.gson.JsonElement> ops = RegistryOps.create(com.mojang.serialization.JsonOps.INSTANCE, provider);
 
-        JsonObject root = new JsonObject();
-        com.google.gson.JsonArray array = new com.google.gson.JsonArray();
-        for (ItemStack stack : items) {
-            ItemStack.CODEC.encodeStart(ops, stack).result().ifPresent(array::add);
+        com.google.gson.JsonObject root = new com.google.gson.JsonObject();
+        com.google.gson.JsonArray recordsArray = new com.google.gson.JsonArray();
+
+        for (DeathRecord record : records) {
+            com.google.gson.JsonObject recordObj = new com.google.gson.JsonObject();
+            recordObj.addProperty("timestamp", record.getTimestamp());
+
+            com.google.gson.JsonArray itemsArray = new com.google.gson.JsonArray();
+            for (ItemStack stack : record.getItems()) {
+                ItemStack.CODEC.encodeStart(ops, stack).result().ifPresent(itemsArray::add);
+            }
+            recordObj.add("items", itemsArray);
+
+            recordsArray.add(recordObj);
         }
-        root.add("saved_items", array);
+
+        root.add("death_records", recordsArray);
 
         org.silverbreezed.whitehole.manager.AsyncIOManager.writeJsonAsync(file, root).thenRun(() -> {
-            Constants.LOG.info("Inventory successfully saved to disk asynchornously for " + playerUUID);
+            org.silverbreezed.whitehole.Constants.LOG.info("[White Hole IO] Snapshot riwayat kematian berhasil disimpan asinkron untuk: " + playerUUID);
         });
-    }
-
-    private static List<ItemStack> getSavedItemsFromDisk(Level level, UUID playerUUID) {
-        List<ItemStack> list = new ArrayList<>();
-        File file = getSaveFile(level, playerUUID);
-        if (!file.exists()) return list;
-
-        HolderLookup.Provider provider = level.registryAccess();
-        RegistryOps<com.google.gson.JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, provider);
-
-        try (FileReader reader = new FileReader(file)) {
-            JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
-            if (root.has("saved_items")) {
-                com.google.gson.JsonArray array = root.getAsJsonArray("saved_items");
-                for (com.google.gson.JsonElement element : array) {
-                    ItemStack.CODEC.parse(ops, element).result().ifPresent(list::add);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
     }
 }
