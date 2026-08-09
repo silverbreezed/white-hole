@@ -17,12 +17,6 @@ public class WhiteHoleFabric implements ModInitializer {
         org.silverbreezed.whitehole.block.ModBlocksFabric.register();
         org.silverbreezed.whitehole.item.ModItemsFabric.register();
 
-        try {
-            ConfigManager.load();
-            LOGGER.info("{}", GSON.toJson(ConfigManager.getModConfig()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         // This method is invoked by the Fabric mod loader when it is ready
         // to load your mod. You can access Fabric and Common code in this

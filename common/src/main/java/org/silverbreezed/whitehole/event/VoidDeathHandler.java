@@ -22,26 +22,45 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class VoidDeathHandler {
+    private static final Map<UUID, List<ItemStack>> IN_MEMORY_CACHE = new ConcurrentHashMap<>();
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    public static void loadPlayerDataAsync(ServerPlayer player) {
+        UUID uuid = player.getUUID();
+        Level level = player.level();
+
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            File file = getSaveFile(level, uuid);
+            if (file.exists() && file.length() > 0) {
+                List<ItemStack> items = getSavedItemsFromDisk(level, uuid);
+                if (!items.isEmpty()) {
+                    IN_MEMORY_CACHE.put(uuid, items);
+                    Constants.LOG.info("Data loaded into cache for " + player.getName().getString());
+                }
+            }
+        }, org.silverbreezed.whitehole.manager.AsyncIOManager.IO_EXECUTOR);
+    }
+
+    public static void unloadPlayerData(ServerPlayer player) {
+        if (IN_MEMORY_CACHE.remove(player.getUUID()) != null) {
+            Constants.LOG.info("Data removed from cache for " + player.getName().getString() + " to free up memory.");
+        }
+    }
 
     private static File getSaveFile(Level level, UUID playerUUID) {
         File serverRoot = Objects.requireNonNull(level.getServer()).getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).toFile();
-
         File dataDir = new File(serverRoot, "data");
-
         File whiteHoleDir = new File(dataDir, Constants.MOD_ID + "_data");
-        if (!whiteHoleDir.exists()) {
-            whiteHoleDir.mkdirs();
+
+        File voidDir = new File(whiteHoleDir, "void");
+        if (!voidDir.exists()) {
+            voidDir.mkdirs();
         }
 
-        return new File(whiteHoleDir, playerUUID.toString() + ".json");
+        return new File(voidDir, playerUUID.toString() + ".json");
     }
 
     public static boolean handlePlayerVoidDeath(ServerPlayer player, DamageSource source) {
@@ -68,9 +87,11 @@ public class VoidDeathHandler {
             }
 
             if (hasNewItems) {
+                IN_MEMORY_CACHE.put(playerUUID, new ArrayList<>(savedInventory));
+
                 saveItemsToDisk(level, playerUUID, savedInventory);
 
-                System.out.println("[White Hole STDOUT]: Inventory successfully saved to custom JSON for " + player.getName().getString());
+                System.out.println("Inventory successfully saved to JSON file for " + player.getName().getString());
                 player.getInventory().clearContent();
                 return true;
             }
@@ -79,19 +100,16 @@ public class VoidDeathHandler {
     }
 
     public static List<ItemStack> getAndClearSavedItems(Level level, UUID playerUUID) {
-        List<ItemStack> items = getSavedItemsFromDisk(level, playerUUID);
+        List<ItemStack> items = IN_MEMORY_CACHE.remove(playerUUID);
 
         File file = getSaveFile(level, playerUUID);
-        if (file.exists()) {
-            file.delete();
-        }
-        return items;
+        org.silverbreezed.whitehole.manager.AsyncIOManager.deleteFileAsync(file);
+
+        return items != null ? items : new ArrayList<>();
     }
 
     public static boolean hasSavedItems(Level level, UUID playerUUID) {
-        File file = getSaveFile(level, playerUUID);
-        // Return if ...
-        return file.exists() && file.length() > 0;
+        return IN_MEMORY_CACHE.containsKey(playerUUID) && !IN_MEMORY_CACHE.get(playerUUID).isEmpty();
     }
 
     private static void saveItemsToDisk(Level level, UUID playerUUID, List<ItemStack> items) {
@@ -99,19 +117,16 @@ public class VoidDeathHandler {
         HolderLookup.Provider provider = level.registryAccess();
         RegistryOps<com.google.gson.JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, provider);
 
-        try (FileWriter writer = new FileWriter(file)) {
-            JsonObject root = new JsonObject();
-            com.google.gson.JsonArray array = new com.google.gson.JsonArray();
-
-            for (ItemStack stack : items) {
-                ItemStack.CODEC.encodeStart(ops, stack).result().ifPresent(array::add);
-            }
-
-            root.add("saved_items", array);
-            GSON.toJson(root, writer);
-        } catch (Exception e) {
-            e.printStackTrace();
+        JsonObject root = new JsonObject();
+        com.google.gson.JsonArray array = new com.google.gson.JsonArray();
+        for (ItemStack stack : items) {
+            ItemStack.CODEC.encodeStart(ops, stack).result().ifPresent(array::add);
         }
+        root.add("saved_items", array);
+
+        org.silverbreezed.whitehole.manager.AsyncIOManager.writeJsonAsync(file, root).thenRun(() -> {
+            Constants.LOG.info("[White Hole IO]: Inventory successfully saved to disk asynchornously for " + playerUUID);
+        });
     }
 
     private static List<ItemStack> getSavedItemsFromDisk(Level level, UUID playerUUID) {
