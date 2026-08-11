@@ -1,6 +1,7 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "whitehole:block/white_hole_altar_unlit"
+    "model": "whitehole:block/white_hole_altar_unlit",
+    "__comment": "Copyright (c) 2026 SilverBreezed. All Rights Reserved."
   }
 }
