@@ -59,16 +59,25 @@ A: **Yes**, but currently the mod must be installed on both the server and the c
 
 ```json
 {
-  "recoverItemsFromEndVoid": true,
-  "recoverItemsFromOverworldVoid": false,
-  "recoverItemsFromNetherVoid": false,
-  "recoverItemsFromDespawn": true,
+  "voidRecovery": {
+    "overworld": false,
+    "nether": false,
+    "end": true
+  },
+  "despawnRecovery": {
+    "enabled": true,
+    "thresholdTicks": 5900,
+    "radius": 16
+  },
   "maxSavedItemSnapshots": 3,
   "altarCooldown": false,
   "defaultAltarCooldown": 1200
 }
 ```
 
-* `recoverItemsFromDespawn`: **please note** this is planned for a future update and is currently not functional.
+* `voidRecovery`: per-dimension toggles for capturing your inventory when you die by falling out of the world. Defaults to **The End only**, since void deaths elsewhere are rare — server owners can enable the other dimensions if their playerbase wants that extra safety net.
+* `despawnRecovery`: **please note** this is planned for a future update and is currently not functional. Reserved here so the config shape doesn't need another breaking change once it ships.
 * `maxSavedItemSnapshots`: determines how many full player-inventory snapshots can be saved by the White Hole.
 * `defaultAltarCooldown`: determines the default cooldown duration for the Altar.
+
+> **Upgrading from an older version?** If your existing `whitehole.json` still uses the old flat keys (`recoverItemsFromEndVoid`, etc.), it will be automatically migrated into the nested shape above the first time the server loads — your existing settings are preserved.
