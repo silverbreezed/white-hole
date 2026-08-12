@@ -2,6 +2,7 @@ package org.silverbreezed.whitehole.manager;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import org.silverbreezed.whitehole.Constants;
 import org.silverbreezed.whitehole.config.ModConfig;
 import org.silverbreezed.whitehole.platform.Services;
@@ -21,10 +22,17 @@ public class ConfigManager {
     public static void load() throws IOException {
         if (Files.exists(CONFIG_PATH)) {
             try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {
-                modConfig = GSON.fromJson(reader, ModConfig.class);
+                JsonObject root = com.google.gson.JsonParser.parseReader(reader).getAsJsonObject();
 
-                if (modConfig == null) {
-                    modConfig = new ModConfig();
+                if (isLegacyFlatSchema(root)) {
+                    Constants.LOG.info("Migrating " + Constants.MOD_ID + ".json from the pre-refactor flat config schema.");
+                    modConfig = migrateLegacyConfig(root);
+                    save(); // persist the migrated, nested shape immediately so this only runs once
+                } else {
+                    modConfig = GSON.fromJson(root, ModConfig.class);
+                    if (modConfig == null) {
+                        modConfig = new ModConfig();
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -33,6 +41,43 @@ public class ConfigManager {
             System.out.println("No existing config file exist. Creating new...");
             save();
         }
+    }
+
+    /**
+     * Configs written before the void/despawn recovery grouping had these keys at the root
+     * instead of nested under "voidRecovery" / "despawnRecovery". Their presence at the root
+     * (without the new nested keys) signals a pre-refactor file that needs migrating.
+     */
+    private static boolean isLegacyFlatSchema(JsonObject root) {
+        return root.has("recoverItemsFromEndVoid") && !root.has("voidRecovery");
+    }
+
+    private static ModConfig migrateLegacyConfig(JsonObject root) {
+        ModConfig config = new ModConfig();
+
+        if (root.has("recoverItemsFromEndVoid")) {
+            config.voidRecovery.end = root.get("recoverItemsFromEndVoid").getAsBoolean();
+        }
+        if (root.has("recoverItemsFromOverworldVoid")) {
+            config.voidRecovery.overworld = root.get("recoverItemsFromOverworldVoid").getAsBoolean();
+        }
+        if (root.has("recoverItemsFromNetherVoid")) {
+            config.voidRecovery.nether = root.get("recoverItemsFromNetherVoid").getAsBoolean();
+        }
+        if (root.has("recoverItemsFromDespawn")) {
+            config.despawnRecovery.enabled = root.get("recoverItemsFromDespawn").getAsBoolean();
+        }
+        if (root.has("maxSavedItemSnapshots")) {
+            config.maxSavedItemSnapshots = root.get("maxSavedItemSnapshots").getAsInt();
+        }
+        if (root.has("altarCooldown")) {
+            config.altarCooldown = root.get("altarCooldown").getAsBoolean();
+        }
+        if (root.has("defaultAltarCooldown")) {
+            config.defaultAltarCooldown = root.get("defaultAltarCooldown").getAsInt();
+        }
+
+        return config;
     }
 
     public static void save() throws IOException {

@@ -1,11 +1,8 @@
 package org.silverbreezed.whitehole.config;
 
 public class ModConfig {
-    public boolean recoverItemsFromEndVoid = true;
-    public boolean recoverItemsFromOverworldVoid = false;
-    public boolean recoverItemsFromNetherVoid = false;
-
-    public boolean recoverItemsFromDespawn = true;
+    public VoidRecoveryConfig voidRecovery = new VoidRecoveryConfig();
+    public DespawnRecoveryConfig despawnRecovery = new DespawnRecoveryConfig();
 
     public int maxSavedItemSnapshots = 3;
 
