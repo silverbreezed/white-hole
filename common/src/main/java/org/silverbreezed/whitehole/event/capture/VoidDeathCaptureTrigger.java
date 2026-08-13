@@ -51,7 +51,7 @@ public class VoidDeathCaptureTrigger {
             }
         }
 
-        boolean captured = ItemSnapshotManager.capture(RecoveryReason.VOID_DEATH, player, savedInventory);
+        boolean captured = ItemSnapshotManager.capture(RecoveryReason.VOID_DEATH, player.level(), player.getUUID(), savedInventory);
         if (captured) {
             player.getInventory().clearContent();
         }

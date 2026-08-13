@@ -9,5 +9,12 @@ public enum RecoveryReason {
 
     // Reserved for the upcoming despawn-recovery feature (see ModConfig.DespawnRecoveryConfig
     // and README "Future Updates"). Not yet produced by any capture trigger.
-    DESPAWN
+    DESPAWN;
+
+    public String folderName() {
+        return switch (this) {
+            case VOID_DEATH -> "void";
+            case DESPAWN -> "despawn";
+        };
+    }
 }

@@ -1,17 +1,15 @@
 package org.silverbreezed.whitehole.config;
 
 /**
- * Reserved for the upcoming despawn-recovery feature (see README "Future Updates").
+ * Settings for the despawn-recovery feature (see README "Future Updates").
  *
- * Not yet read by any capture trigger - defined here now so the config shape is already
- * in its final form before the feature lands, avoiding a second breaking config migration.
+ * Deliberately has no tick-threshold or radius setting: DespawnCaptureTrigger hooks the
+ * actual vanilla despawn decision point (per-item, wherever it drifts to) instead of
+ * guessing a fixed time/area, so it stays correct no matter what despawn duration a server
+ * configures. Also deliberately has no death-cause exception (e.g. PvP) - it's universal:
+ * any death's items are eligible, the only condition is whether anyone retrieves them
+ * before they'd naturally despawn.
  */
 public class DespawnRecoveryConfig {
     public boolean enabled = true;
-
-    /** Ticks after which a dropped item is captured, just before vanilla's despawn timer. */
-    public int thresholdTicks = 5900;
-
-    /** Radius (in blocks) around a player scanned for despawning items. */
-    public int radius = 16;
 }

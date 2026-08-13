@@ -3,6 +3,8 @@ package org.silverbreezed.whitehole.mixin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
+import org.silverbreezed.whitehole.event.capture.DespawnCaptureTrigger;
 import org.silverbreezed.whitehole.event.capture.VoidDeathCaptureTrigger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,10 +18,24 @@ public class ServerPlayerMixin {
     private void onPlayerDie(DamageSource source, CallbackInfo ci) {
         ServerPlayer player = (ServerPlayer) (Object) this;
 
-        boolean secured = VoidDeathCaptureTrigger.tryCapture(player, source);
+        boolean voidDeathsecured = VoidDeathCaptureTrigger.tryCapture(player, source);
+        // Opens the eligibility window used by loaders whose death-drop hook can't see the
+        // DamageSource directly (Fabric's PlayerDeathDropMixin). Harmless on NeoForge, which
+        // gets the source for free from LivingDropsEvent and doesn't consult this.
+        DespawnCaptureTrigger.beginDeath(player.getUUID());
 
-        if (secured) {
+        if (voidDeathsecured) {
             player.sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dYou died in the void. You can bring back your items using the White Hole Altar in an Ancient City."));
         }
+
+        if (!source.is(DamageTypes.FELL_OUT_OF_WORLD)) {
+            player.sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dYou died. If your items despawned, you can bring back your items using the White Hole Altar in an Ancient City."));
+        }
+    }
+
+    @Inject(method = "die", at = @At("TAIL"))
+    private void onPlayerDieEnd(DamageSource source, CallbackInfo ci) {
+        ServerPlayer player = (ServerPlayer) (Object) this;
+        DespawnCaptureTrigger.endDeath(player.getUUID());
     }
 }

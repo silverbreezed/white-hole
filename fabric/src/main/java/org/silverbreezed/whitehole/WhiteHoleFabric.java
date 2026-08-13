@@ -1,12 +1,11 @@
 package org.silverbreezed.whitehole;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.silverbreezed.whitehole.manager.ConfigManager;
-import org.slf4j.Logger;
+import org.silverbreezed.whitehole.manager.DespawnBatchAggregatorManager;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 
 public class WhiteHoleFabric implements ModInitializer {
@@ -17,9 +16,13 @@ public class WhiteHoleFabric implements ModInitializer {
         org.silverbreezed.whitehole.block.ModBlocksFabric.register();
         org.silverbreezed.whitehole.item.ModItemsFabric.register();
 
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> DespawnBatchAggregatorManager.flushAllImmediately());
+
         try {
             ConfigManager.load();
-            LOGGER.info("{}", GSON.toJson(ConfigManager.getModConfig()));
+            LoggerFactory.getLogger(Constants.MOD_ID).info("{}", new GsonBuilder()
+                    .setPrettyPrinting()
+                    .create().toJson(ConfigManager.getModConfig()));
 
             CommonClass.init();
             Constants.LOG.info("Enabled White hole for [FABRIC]!");
@@ -27,12 +30,4 @@ public class WhiteHoleFabric implements ModInitializer {
             throw new RuntimeException(e);
         }
     }
-
-    public static final Logger LOGGER =
-            LoggerFactory.getLogger(Constants.MOD_ID);
-
-    private static final Gson GSON =
-            new GsonBuilder()
-                    .setPrettyPrinting()
-                    .create();
 }

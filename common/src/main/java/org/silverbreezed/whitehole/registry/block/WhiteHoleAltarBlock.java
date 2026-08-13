@@ -1,4 +1,4 @@
-package org.silverbreezed.whitehole.block;
+package org.silverbreezed.whitehole.registry.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,7 +28,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.NonNull;
 import org.silverbreezed.whitehole.config.ModConfig;
 import org.silverbreezed.whitehole.event.RecoverySnapshot;
-import org.silverbreezed.whitehole.item.ModItems;
+import org.silverbreezed.whitehole.registry.item.ModItems;
 import org.silverbreezed.whitehole.manager.ConfigManager;
 import org.silverbreezed.whitehole.manager.ItemSnapshotManager;
 

@@ -1,4 +1,4 @@
-package org.silverbreezed.whitehole.block;
+package org.silverbreezed.whitehole.registry.block;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;

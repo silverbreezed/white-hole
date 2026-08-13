@@ -5,6 +5,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.silverbreezed.whitehole.Constants;
+import org.silverbreezed.whitehole.registry.item.ModItems;
 
 public class ModItemsNeoForge {
 
