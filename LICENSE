@@ -1,16 +1,37 @@
-# License
+# Project Licensing
 
-## Source Code
-The source code of this project is licensed under the MIT License.
+This project operates under a dual-licensing model: the underlying source code and logic are open-source, while all artistic and visual assets remain strictly proprietary.
 
-## Visual Assets (Textures, 3D Models, and Logos)
-ALL RIGHTS RESERVED.
+---
 
-All visual assets included in this mod—including but not limited to the custom block textures, custom item textures, 3D models, and logos—are 100% original creations owned entirely by the author (silverbreezed).
+## 1. Source Code License
 
-You are strictly PROHIBITED from:
-1. Re-uploading, redistributing, or copying these assets to other websites, public projects, or other mods without explicit written permission.
-2. Modifying or using these textures/models in public resource packs or derivative works.
+The source code, algorithms, and logic of this project are licensed under the **GNU General Public License v3.0 (GPLv3)**.
 
-You are ALLOWED to:
-1. Include this mod in any public or private modpacks, provided that the mod is downloaded directly through official ecosystems like Modrinth.
+You are free to inspect, modify, and redistribute the source code under the condition that any derivative works or modifications are also distributed under the same GPLv3 license and proper credit is provided to the original author.
+
+See the full text of the GNU General Public License v3.0 below or visit <https://www.gnu.org/licenses/gpl-3.0.html>.
+
+---
+
+## 2. Visual Assets License (Textures, 3D Models, Sound Effects & Logos)
+
+**ALL RIGHTS RESERVED.**
+
+All visual assets included in this mod—including but not limited to custom block textures, custom item textures, 3D models, sound effects, and logos—are original creations owned entirely by the author (**SilverBreezed**).
+
+### You are strictly PROHIBITED from:
+1. Extracting, re-uploading, redistributing, or copying these assets to other mods, standalone resource packs, public projects, or external platforms without explicit written permission.
+2. Modifying or adapting these textures/models/logos for public redistribution or derivative works outside this project.
+
+### You are ALLOWED to:
+1. Include this mod in any public or private modpacks, provided that the mod file (`.jar`) is downloaded directly through official ecosystems such as Modrinth or CurseForge without modifying the internal assets.
+2. **Contribute Improvements (Pull Requests):** You may modify or create new assets *solely* for the purpose of submitting Pull Requests, bug fixes, or asset enhancements directly to this official project repository.
+
+---
+
+## 3. Contributor License Agreement (CLA) for Contributions
+
+By submitting a Pull Request (PR) or contributing code, assets, or localization files to this repository, you agree that:
+1. **Source Code Contributions:** All submitted code will be licensed under the project's **GNU GPLv3** license.
+2. **Visual & Audio Asset Contributions:** Any visual or audio assets submitted via PR will be assigned/licensed to the project author (**SilverBreezed**). The author retains the exclusive right to distribute, modify, and include these assets in official releases under the All Rights Reserved model.
