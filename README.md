@@ -1,34 +1,34 @@
-# Recover items lost to the Void — with more item recovery options coming soon.
+# Recover your Despawned Items or Items that Lost to the End Void
 
-This mod is designed to cure one of Minecraft's ultimate frustrations: **dying in the Void** with absolutely zero chance to recovering your items.
+This mod is designed to cure two of Minecraft's ultimate frustrations:
+- Dying and **losing the hard-gained items when they naturally despawn** before you can reach them
+- and **dying in the Void** with absolutely zero chance to recover it
 
-With the **White Hole Altar** and **Cosmic Eye**, you can recover your lost inventory from the Void (and despawned items for the future updates).
+With the **White Hole Altar** and **Cosmic Eye**, you can recover despawned items after dying and your lost inventory after falling into the Void.
 
-![White Hole Altar](https://github.com/silverbreezed/white-hole/blob/26.2/assets/gif/altar.gif?raw=true)
+![White Hole Altar](https://raw.githubusercontent.com/silverbreezed/assets/refs/heads/main/altar.gif)
 
-> **Not literally a *white hole* physics object.** Instead, it taps into an invisible cosmic force that expels what a Black Hole (the Void) has swallowed.
+> **Not literally a *white hole* physics object.** Instead, it taps into an invisible cosmic force that expels what time or the Void has swallowed.
 
 ---
 
-## 🟥 The Problem
+## 🟥 The Frustration of Vanilla Minecraft
 
-As a survival player, you're exploring **The End**, and you slip and fall into the Void.
+* **The Brutal Despawn Timer:** You die far from spawn or deep in a treacherous cave. You sprint and navigate back to your death point as fast as humanly possible, but your items was despawned and literally gone forever.
+* **The End Void:** You slip while bridging across **The End**, and your hard-gained gear lost into the void with zero chance of recovery.
 
-In vanilla Minecraft, **the Void destroys everything**. Your hard-earned end-game gear is literally gone forever with absolutely zero chance to recover it.
+Vanilla Minecraft offers no second chances when time runs out or the void takes your loot. **White Hole gives you a lore-friendly way to get it back.**
 
 ## 🟩 The Solution: The White Hole Altar
 
-This mod introduces a high-risk, high-reward mechanic that allows you to recover items lost in your most recent Void death.
+This mod introduces a high-risk, high-reward mechanic that allows you to recover items from most recent despawned items after dying, and recent death into the Void.
 
-* **The White Hole Altar:** A mysterious, ancient block generated naturally at the center of **Ancient Cities** in the Overworld. It replaces the single chest normally found at the center of an Ancient City with a simple cosmic structure.
+* **The White Hole Altar:** A mysterious structure naturally generated at the center of **Ancient Cities** in the Overworld.
+* **The Cosmic Eye:** A rare artifact to open the white hole hidden in **Ancient City chests**
 
-* **The Cosmic Eye:** A mysterious cosmic item that can be found in **Ancient City chests** and offered to the Altar.
+## 🔎 Finding the Cosmic Eye
 
-* **Void Salvation:** If you die in the Void, your lost inventory is safely stored. Return to the Altar, insert the **Cosmic Eye**, and the White Hole will recover your items!
-
-## 🔎 Where to Find the Cosmic Eye?
-
-The Cosmic Eye can be found naturally in **Ancient City chests**, with a rarity comparable to that of an **Enchanted Golden Apple**.
+The Cosmic Eye can be found naturally in **Ancient City chests**, with a rarity comparable to an **Enchanted Golden Apple**.
 
 ![Cosmic Eye Item](https://cdn.modrinth.com/data/cached_images/ebec0951770750fb5a3622e5237b0a59e259f39c.png)
 
@@ -36,20 +36,26 @@ The Cosmic Eye can be found naturally in **Ancient City chests**, with a rarity 
 
 ## ❓ Frequently Asked Questions (FAQ)
 
-**Q: Can this mod recover items that I lost BEFORE installing it?**<br>
-A: **No.** The mod can only track and save your inventory data for deaths that occur after the mod has been successfully installed and activated.
+**Q: Can this mod recover items lost BEFORE installing it?**<br>
+A: **No.** The mod can only track and save data for deaths and despawns that occur while the mod is active.
 
 **Q: Is this mod multiplayer-friendly?**<br>
-A: **Yes**, but currently the mod must be installed on both the server and the client to function properly. However, standalone server support (via Polymer) is actively being developed.
+A: **Yes**, but currently the mod must be installed on both the server and the client. Standalone server-side support (via Polymer) is in active development.
+
+**Q: What happens if I die multiple times before visiting the Altar?**<br>
+A: The mod stores up to `maxSavedItemSnapshots` (3 by default) in history. This means the white hole will save your full inventory for the maximum 3 snapshots of death.
+
+**Q: Does this save items that I drop manually with 'Q' (default drop key)**<br>
+A: **No.** The despawn tracker specifically tags items dropped upon a player's death. Normal manual drops, thrown items, and automated farm drops will despawn naturally without being saved.
 
 ---
 
 ## ℹ️ Future Updates
 
-* Players will be able to **recover the last despawned items after dying** by using the White Hole Altar.
 * Polymer integration to enable multiplayer servers to use the mod without requiring every player to install the mod on their client.
-* GUI configuration with `cloth_config_api` configuration menu for both **Fabric and NeoForge**.
-* Port to other Minecraft versions (especially 1.21.11, 26.1.2)
+* Snapshot selection menu to allowing players to view and select which specific death snapshot they want to restore instead of automatically recovering only the latest one.
+* In-game configuration UI using `cloth_config_api` for both **Fabric and NeoForge**.
+* Porting to additional Minecraft versions (especially 1.21.11, 26.1.2).
 
 ---
 
@@ -65,9 +71,7 @@ A: **Yes**, but currently the mod must be installed on both the server and the c
     "end": true
   },
   "despawnRecovery": {
-    "enabled": true,
-    "thresholdTicks": 5900,
-    "radius": 16
+    "enabled": true
   },
   "maxSavedItemSnapshots": 3,
   "altarCooldown": false,
@@ -75,9 +79,12 @@ A: **Yes**, but currently the mod must be installed on both the server and the c
 }
 ```
 
-* `voidRecovery`: per-dimension toggles for capturing your inventory when you die by falling out of the world. Defaults to **The End only**, since void deaths elsewhere are rare — server owners can enable the other dimensions if their playerbase wants that extra safety net.
-* `despawnRecovery`: **please note** this is planned for a future update and is currently not functional. Reserved here so the config shape doesn't need another breaking change once it ships.
-* `maxSavedItemSnapshots`: determines how many full player-inventory snapshots can be saved by the White Hole.
-* `defaultAltarCooldown`: determines the default cooldown duration for the Altar.
+`voidRecovery`: per-dimension toggles for capturing your inventory when you die by falling out of the world. Defaults to The End only, since void deaths elsewhere are rare — server owners can enable the other dimensions if their playerbase wants that extra safety net.
 
-> **Upgrading from an older version?** If your existing `whitehole.json` still uses the old flat keys (`recoverItemsFromEndVoid`, etc.), it will be automatically migrated into the nested shape above the first time the server loads — your existing settings are preserved.
+`despawnRecovery`: universal safety net for items dropped on any death that nobody retrieves before they'd naturally despawn. Items still drop and can be looted normally in the meantime by anyone nearby — only items that would otherwise be lost to despawn are captured, regardless of how long your server is configured to keep items on the ground.
+
+`maxSavedItemSnapshots`: determines how many full player-inventory snapshots can be saved by the White Hole.
+
+`defaultAltarCooldown`: determines the default cooldown duration for the Altar.
+
+> Upgrading from an older version? If your existing whitehole.json still uses the old flat keys (recoverItemsFromEndVoid, etc.), it will be automatically migrated into the nested shape above the first time the server loads — your existing settings are preserved.
