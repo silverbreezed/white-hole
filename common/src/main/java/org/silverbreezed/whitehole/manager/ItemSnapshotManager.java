@@ -291,7 +291,7 @@ public class ItemSnapshotManager {
         root.add("snapshots", recordsArray);
 
         org.silverbreezed.whitehole.manager.AsyncIOManager.writeJsonAsync(file, root).thenRun(() -> {
-            Constants.LOG.info("[White Hole IO] Snapshot (" + reason + ") berhasil disimpan asinkron untuk: " + playerUUID);
+            Constants.LOG.info("Snapshot (" + reason + ") successfully saved for: " + playerUUID);
         });
     }
 }

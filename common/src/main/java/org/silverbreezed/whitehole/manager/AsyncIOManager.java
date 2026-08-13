@@ -25,12 +25,10 @@ public class AsyncIOManager {
             try (FileWriter writer = new FileWriter(file)) {
                 IO_GSON.toJson(data, writer);
             } catch (Exception e) {
-                // Jangan biarkan error background thread tertelan!
                 Constants.LOG.error("[White Hole IO] FATAL: Gagal menulis data ke " + file.getAbsolutePath(), e);
                 throw new RuntimeException(e);
             }
         }, IO_EXECUTOR).exceptionally(ex -> {
-            // Ini akan mencetak error jika runAsync mati tiba-tiba (misal karena NullPointer)
             Constants.LOG.error("[White Hole IO] Background thread crashed!", ex);
             return null;
         });

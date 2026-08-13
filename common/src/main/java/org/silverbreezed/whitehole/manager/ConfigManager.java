@@ -52,6 +52,7 @@ public class ConfigManager {
         return root.has("recoverItemsFromEndVoid") && !root.has("voidRecovery");
     }
 
+    // Migrate legacy Config to a new config format
     private static ModConfig migrateLegacyConfig(JsonObject root) {
         ModConfig config = new ModConfig();
 
