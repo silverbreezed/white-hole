@@ -14,11 +14,11 @@ See the full text of the GNU General Public License v3.0 below or visit <https:/
 
 ---
 
-## 2. Visual Assets License (Textures, 3D Models, Sound Effects & Logos)
+## 2. Visual Assets License (Textures & Logos)
 
 **ALL RIGHTS RESERVED.**
 
-All visual assets included in this mod—including but not limited to custom block textures, custom item textures, 3D models, sound effects, and logos—are original creations owned entirely by the author (**SilverBreezed**).
+All visual assets included in this mod—including but not limited to custom block textures, custom item textures, and logos—are original creations owned entirely by the author (**SilverBreezed**).
 
 ### You are strictly PROHIBITED from:
 1. Extracting, re-uploading, redistributing, or copying these assets to other mods, standalone resource packs, public projects, or external platforms without explicit written permission.
@@ -34,4 +34,4 @@ All visual assets included in this mod—including but not limited to custom blo
 
 By submitting a Pull Request (PR) or contributing code, assets, or localization files to this repository, you agree that:
 1. **Source Code Contributions:** All submitted code will be licensed under the project's **GNU GPLv3** license.
-2. **Visual & Audio Asset Contributions:** Any visual or audio assets submitted via PR will be assigned/licensed to the project author (**SilverBreezed**). The author retains the exclusive right to distribute, modify, and include these assets in official releases under the All Rights Reserved model.
+2. **Visual & Asset Contributions:** Any visual assets submitted via PR will be assigned/licensed to the project author (**SilverBreezed**). The author retains the exclusive right to distribute, modify, and include these assets in official releases under the All Rights Reserved model.
