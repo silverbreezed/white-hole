@@ -4,8 +4,6 @@
   "package": "org.silverbreezed.whitehole.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "ItemEntityDespawnMixin",
-    "PlayerDeathDropMixin",
     "PlayerLoginMixin",
     "ServerPlayerMixin"
   ],

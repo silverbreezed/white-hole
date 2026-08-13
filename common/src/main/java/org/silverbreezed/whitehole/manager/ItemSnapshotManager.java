@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * or be touched again when a new trigger is added.
  *
  * On disk, snapshots are split into one file per RecoveryReason
- * ("whitehole_data/void/<uuid>.json", "whitehole_data/despawn/<uuid>.json") so a write
+ * ("whitehole_data/void/[uuid].json", "whitehole_data/despawn/[uuid].json") so a write
  * triggered by one reason never has to re-serialize the other reason's history - despawn
  * captures are expected to be far more frequent than void deaths, so this avoids constantly
  * rewriting unrelated void-death data. In memory, both reasons still live together in one

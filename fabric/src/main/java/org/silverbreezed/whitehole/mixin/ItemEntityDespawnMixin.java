@@ -27,7 +27,8 @@ public class ItemEntityDespawnMixin {
     @Inject(
             method = "tick",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/item/ItemEntity;discard()V"),
-            cancellable = true
+            cancellable = true,
+            require = 1
     )
     private void whitehole$onExpire(CallbackInfo ci) {
         ItemEntity self = (ItemEntity) (Object) this;
