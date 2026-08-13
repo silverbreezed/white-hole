@@ -4,6 +4,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
+import org.silverbreezed.whitehole.registry.block.ModBlocks;
 
 public class ModBlocksFabric {
 

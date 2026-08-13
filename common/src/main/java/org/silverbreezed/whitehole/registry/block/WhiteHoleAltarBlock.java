@@ -1,4 +1,4 @@
-package org.silverbreezed.whitehole.block;
+package org.silverbreezed.whitehole.registry.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,7 +14,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,18 +27,25 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.NonNull;
 import org.silverbreezed.whitehole.config.ModConfig;
-import org.silverbreezed.whitehole.event.VoidDeathHandler;
-import org.silverbreezed.whitehole.item.ModItems;
+import org.silverbreezed.whitehole.event.RecoverySnapshot;
+import org.silverbreezed.whitehole.registry.item.ModItems;
 import org.silverbreezed.whitehole.manager.ConfigManager;
+import org.silverbreezed.whitehole.manager.ItemSnapshotManager;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class WhiteHoleAltarBlock extends Block {
 
     public static final BooleanProperty ACTIVE = BlockStateProperties.LIT;
-    private static UUID lastPlacerUUID = null;
+
+    // Keyed by the altar's own BlockPos rather than a single global field, so multiple
+    // altars (different players, different Ancient Cities) can be mid-restoration at the
+    // same time without one altar's pending player overwriting another's.
+    private static final Map<BlockPos, UUID> PENDING_PLACER = new ConcurrentHashMap<>();
 
     private static final HashMap<UUID, Long> ALTAR_COOLDOWN = new HashMap<>();
 
@@ -78,7 +84,7 @@ public class WhiteHoleAltarBlock extends Block {
                 }
 
                 if (!level.isClientSide()) {
-                    lastPlacerUUID = playerUUID; // Kunci identitas pemain
+                    PENDING_PLACER.put(pos, playerUUID);
                     player.sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dCosmic Eye has installed. Opening the gate of the void singularity..."));
                     level.playSound(null, pos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 0.3F, 1.05F);
                     level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.5F, 1.10F);
@@ -104,19 +110,20 @@ public class WhiteHoleAltarBlock extends Block {
     protected void tick(@NonNull BlockState state, @NonNull ServerLevel serverLevel, @NonNull BlockPos pos, @NonNull RandomSource random) {
         super.tick(state, serverLevel, pos, random);
 
-        if (lastPlacerUUID == null) return;
-        Player player = serverLevel.getPlayerByUUID(lastPlacerUUID);
+        UUID placerUUID = PENDING_PLACER.get(pos);
+        if (placerUUID == null) return;
+        Player player = serverLevel.getPlayerByUUID(placerUUID);
         long gameTime = serverLevel.getGameTime();
 
         double spawnX = pos.getX() + 0.5;
         double spawnY = pos.getY() + 1.2;
         double spawnZ = pos.getZ() + 0.5;
 
-        org.silverbreezed.whitehole.event.DeathRecord lastDeath = org.silverbreezed.whitehole.event.VoidDeathHandler.popLastDeathRecord(serverLevel, lastPlacerUUID);
+        RecoverySnapshot lastSnapshot = ItemSnapshotManager.popLastSnapshot(serverLevel, placerUUID);
 
         // --- IF ITEMS EXISTS ---
-        if (lastDeath != null) {
-            List<ItemStack> savedItems = lastDeath.getItems();
+        if (lastSnapshot != null) {
+            List<ItemStack> savedItems = lastSnapshot.getItems();
 
             for (ItemStack stack : savedItems) {
                 ItemEntity itemEntity = new ItemEntity(serverLevel, spawnX, spawnY, spawnZ, stack);
@@ -125,7 +132,7 @@ public class WhiteHoleAltarBlock extends Block {
             }
 
             serverLevel.setBlock(pos, state.setValue(ACTIVE, false), 3);
-            ALTAR_COOLDOWN.put(lastPlacerUUID, gameTime);
+            ALTAR_COOLDOWN.put(placerUUID, gameTime);
 
             serverLevel.playSound(null, pos, SoundEvents.WARDEN_SONIC_BOOM, SoundSource.BLOCKS, 1.0F, 1.1F);
 
@@ -150,7 +157,7 @@ public class WhiteHoleAltarBlock extends Block {
             }
         }
 
-        lastPlacerUUID = null;
+        PENDING_PLACER.remove(pos);
     }
 
     @Override

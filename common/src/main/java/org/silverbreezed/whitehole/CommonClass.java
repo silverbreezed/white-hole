@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2026 SilverBreezed
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ */
+
+/* This Project using Jared's Multiloader template.
+See: https://github.com/jaredlll08/MultiLoader-Template
+ */
+
 package org.silverbreezed.whitehole;
 
 import org.silverbreezed.whitehole.platform.Services;

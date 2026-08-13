@@ -1,5 +1,5 @@
 // Lokasi: modul COMMON
-package org.silverbreezed.whitehole.item;
+package org.silverbreezed.whitehole.registry.item;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
