@@ -170,7 +170,7 @@ public class ItemSnapshotManager {
             // Fully distributed into the two new files now - remove the redundant combined one.
             combinedFile.delete();
 
-            Constants.LOG.info("[White Hole] Split combined snapshot file into void/despawn for " + playerUUID);
+            Constants.LOG.info("Split combined snapshot file into void/despawn for " + playerUUID);
         } catch (Exception e) {
             e.printStackTrace();
         }

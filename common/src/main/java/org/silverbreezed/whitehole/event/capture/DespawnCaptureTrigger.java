@@ -1,11 +1,12 @@
 package org.silverbreezed.whitehole.event.capture;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import org.silverbreezed.whitehole.manager.ConfigManager;
 import org.silverbreezed.whitehole.manager.DespawnBatchAggregatorManager;
-import org.silverbreezed.whitehole.tracker.DespawnTracker;
+import org.silverbreezed.whitehole.manager.DespawnTracker;
 
 import java.util.Map;
 import java.util.UUID;
@@ -79,9 +80,35 @@ public class DespawnCaptureTrigger {
         if (ownerUUID == null) return false;
 
         ItemStack remaining = entity.getItem();
-        if (remaining.isEmpty()) return false;
+        if (!remaining.isEmpty()) {
+            DespawnBatchAggregatorManager.addItem(level, ownerUUID, remaining.copy());
+        }
 
-        DespawnBatchAggregatorManager.addItem(level, ownerUUID, remaining.copy());
+        sweepOutstandingSiblings(level, ownerUUID);
+
         return true;
+    }
+
+    /**
+     * This entity reaching real expiry confirms the death's loot window has closed - so any
+     * other still-tracked entities from the same death are force-captured right now via UUID
+     * lookup, rather than waiting for each to individually tick its way to expiry (which may
+     * never happen soon, or at all, if they're sitting in a chunk outside simulation distance).
+     * Anything not currently found (chunk unloaded, or already picked up by a player) is left
+     * tracked - it'll either get swept next time, expire naturally later, or sit as a harmless
+     * stale entry if it was actually picked up.
+     */
+    private static void sweepOutstandingSiblings(ServerLevel level, UUID ownerUUID) {
+        for (UUID siblingUUID : DespawnTracker.peekOutstanding(ownerUUID)) {
+            Entity siblingEntity = level.getEntity(siblingUUID);
+            if (!(siblingEntity instanceof ItemEntity siblingItem)) continue;
+
+            DespawnTracker.untrack(siblingUUID);
+            ItemStack siblingStack = siblingItem.getItem();
+            if (!siblingStack.isEmpty()) {
+                DespawnBatchAggregatorManager.addItem(level, ownerUUID, siblingStack.copy());
+            }
+            siblingItem.discard();
+        }
     }
 }

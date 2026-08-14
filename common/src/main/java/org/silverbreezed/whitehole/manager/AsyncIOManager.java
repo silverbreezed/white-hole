@@ -25,11 +25,11 @@ public class AsyncIOManager {
             try (FileWriter writer = new FileWriter(file)) {
                 IO_GSON.toJson(data, writer);
             } catch (Exception e) {
-                Constants.LOG.error("[White Hole IO] FATAL: Gagal menulis data ke " + file.getAbsolutePath(), e);
+                Constants.LOG.error("Failed to write to: " + file.getAbsolutePath(), e);
                 throw new RuntimeException(e);
             }
         }, IO_EXECUTOR).exceptionally(ex -> {
-            Constants.LOG.error("[White Hole IO] Background thread crashed!", ex);
+            Constants.LOG.error("Background thread crashed!", ex);
             return null;
         });
     }
@@ -37,7 +37,7 @@ public class AsyncIOManager {
     public static CompletableFuture<Void> deleteFileAsync(File file) {
         return CompletableFuture.runAsync(() -> {
             if (file.exists() && !file.delete()) {
-                Constants.LOG.error("[White Hole IO] Gagal menghapus file: " + file.getName());
+                Constants.LOG.error("Failed to delete file: " + file.getName());
             }
         }, IO_EXECUTOR);
     }

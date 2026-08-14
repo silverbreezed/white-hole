@@ -12,15 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Fabric-only counterpart to NeoForgeDespawnListener#onItemExpire. NeoForge exposes a
  * cancelable ItemExpireEvent for this; Fabric has no equivalent, so this intercepts the
  * actual discard() call inside ItemEntity's own tick instead.
- *
- * *** VERIFY BEFORE COMPILING ***
- * This targets the `discard()` invocation inside `ItemEntity#tick()` - discard() itself is
- * a long-stable, public Entity API method, but I cannot confirm tick() only calls it once
- * (for expiry) in 26.2; if merging with a nearby stack or another cleanup path also calls
- * discard() in the same method, you'll need to narrow this with a @Slice or an ordinal to
- * only match the expiry call. Check your deobfuscated ItemEntity#tick() source and adjust
- * before relying on this.
- */
+ **
+**/
 @Mixin(ItemEntity.class)
 public class ItemEntityDespawnMixin {
 
