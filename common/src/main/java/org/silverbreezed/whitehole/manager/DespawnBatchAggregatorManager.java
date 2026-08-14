@@ -93,7 +93,7 @@ public class DespawnBatchAggregatorManager {
 
             ItemSnapshotManager.capture(RecoveryReason.DESPAWN, level, ownerUUID, items);
             Objects.requireNonNull(level.getPlayerInAnyDimension(ownerUUID)).sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dYour items has despawned. You can bring back your items using the White Hole Altar in an Ancient City."));;
-            Constants.LOG.info("[White Hole] Finalized a despawn batch of " + items.size() + " item(s) for " + ownerUUID);
+            Constants.LOG.info("Finalized a despawn batch of " + items.size() + " item(s) for " + ownerUUID);
         });
     }
 
