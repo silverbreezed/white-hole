@@ -33,6 +33,11 @@ public class ConfigManager {
                     if (modConfig == null) {
                         modConfig = new ModConfig();
                     }
+
+                    if (migrateLegacyGlobalCap(root, modConfig)) {
+                        Constants.LOG.info("Migrating " + Constants.MOD_ID + ".json's shared maxSavedItemSnapshots into separate per-reason caps.");
+                        save();
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -52,7 +57,6 @@ public class ConfigManager {
         return root.has("recoverItemsFromEndVoid") && !root.has("voidRecovery");
     }
 
-    // Migrate legacy Config to a new config format
     private static ModConfig migrateLegacyConfig(JsonObject root) {
         ModConfig config = new ModConfig();
 
@@ -69,7 +73,11 @@ public class ConfigManager {
             config.despawnRecovery.enabled = root.get("recoverItemsFromDespawn").getAsBoolean();
         }
         if (root.has("maxSavedItemSnapshots")) {
-            config.maxSavedItemSnapshots = root.get("maxSavedItemSnapshots").getAsInt();
+            // Pre-refactor files only ever had one shared cap - apply it to both new
+            // per-reason caps rather than picking one arbitrarily.
+            int legacyCap = root.get("maxSavedItemSnapshots").getAsInt();
+            config.voidRecovery.maxSnapshots = legacyCap;
+            config.despawnRecovery.maxSnapshots = legacyCap;
         }
         if (root.has("altarCooldown")) {
             config.altarCooldown = root.get("altarCooldown").getAsBoolean();
@@ -79,6 +87,24 @@ public class ConfigManager {
         }
 
         return config;
+    }
+
+    /**
+     * Handles the second migration tier: files already on the nested voidRecovery/
+     * despawnRecovery schema, but written before maxSavedItemSnapshots moved from a single
+     * shared root field into each reason's own maxSnapshots field. Without this, a
+     * server owner's customized cap would silently be dropped in favor of the new field's
+     * default (3) the first time they load with this version.
+     *
+     * @return true if a migration was actually performed (caller should re-save).
+     */
+    private static boolean migrateLegacyGlobalCap(JsonObject root, ModConfig config) {
+        if (!root.has("maxSavedItemSnapshots")) return false;
+
+        int legacyCap = root.get("maxSavedItemSnapshots").getAsInt();
+        config.voidRecovery.maxSnapshots = legacyCap;
+        config.despawnRecovery.maxSnapshots = legacyCap;
+        return true;
     }
 
     public static void save() throws IOException {

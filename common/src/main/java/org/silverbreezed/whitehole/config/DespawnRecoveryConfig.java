@@ -12,4 +12,8 @@ package org.silverbreezed.whitehole.config;
  */
 public class DespawnRecoveryConfig {
     public boolean enabled = true;
+
+    /** How many DESPAWN snapshots a player can have stored at once
+     *  */
+    public int maxSnapshots = 3;
 }
