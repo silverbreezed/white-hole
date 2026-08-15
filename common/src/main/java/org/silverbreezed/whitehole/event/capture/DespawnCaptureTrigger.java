@@ -32,17 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Deliberately does NOT use a fixed tick threshold or a spatial radius - it hooks the real
  * despawn decision for the specific tagged entity, wherever it ends up, so it stays correct
  * regardless of a server's configured despawn duration or items drifting off in water.
- *
- * IMPORTANT: entities only tick (and so only age toward expiry) while their chunk is within
- * a player's simulation distance. Items from one death that land far enough apart can have
- * their expiry staggered by many minutes as a player gradually walks back into range of each
- * one - without the sweep in tryIntercept() below, that would fragment one death into several
- * separate snapshots. Once ANY sibling from the SAME death naturally expires (confirming that
- * death's loot window has genuinely closed, using vanilla's own signal rather than a guessed
- * duration), the rest of THAT death's items are force-captured immediately via UUID lookup -
- * scoped strictly to one deathId, so an unrelated, still-pending death from the same player
- * (e.g. they died again before the first death's items were resolved) is never swept in too.
- */
+**/
 public class DespawnCaptureTrigger {
 
     private static final Map<UUID, UUID> ACTIVE_DEATH = new ConcurrentHashMap<>();
