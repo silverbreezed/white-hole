@@ -21,8 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * points don't exist together the same way on every loader:
  *
  *  - markOwned(...): called once, right after a player's death-loot items are dropped into
- *    the world, to tag each resulting entity as belonging to that player. On NeoForge this
- *    is wired from LivingDropsEvent; on Fabric from a mixin around the death-drop call.
+ *    the world, to tag each resulting entity as belonging to that player's CURRENT death
+ *    (see the deathId minted in beginDeath()). On NeoForge this is wired from
+ *    LivingDropsEvent; on Fabric from a mixin around the death-drop call.
  *  - tryIntercept(...): called right at the moment an owned entity is about to be removed
  *    for being expired. Doesn't persist it immediately - hands it to
  *    DespawnBatchAggregator, since items from the same death very rarely expire on the
@@ -31,25 +32,31 @@ import java.util.concurrent.ConcurrentHashMap;
  * Deliberately does NOT use a fixed tick threshold or a spatial radius - it hooks the real
  * despawn decision for the specific tagged entity, wherever it ends up, so it stays correct
  * regardless of a server's configured despawn duration or items drifting off in water.
+ *
+ * IMPORTANT: entities only tick (and so only age toward expiry) while their chunk is within
+ * a player's simulation distance. Items from one death that land far enough apart can have
+ * their expiry staggered by many minutes as a player gradually walks back into range of each
+ * one - without the sweep in tryIntercept() below, that would fragment one death into several
+ * separate snapshots. Once ANY sibling from the SAME death naturally expires (confirming that
+ * death's loot window has genuinely closed, using vanilla's own signal rather than a guessed
+ * duration), the rest of THAT death's items are force-captured immediately via UUID lookup -
+ * scoped strictly to one deathId, so an unrelated, still-pending death from the same player
+ * (e.g. they died again before the first death's items were resolved) is never swept in too.
  */
 public class DespawnCaptureTrigger {
 
-    // Bridges the gap for loaders whose death-drop hook doesn't get a clean "this call is
-    // part of a death" signal on its own (Fabric's Player#drop mixin fires for a live
-    // Q-press drop too). NeoForge's LivingDropsEvent only ever fires for death drops and
-    // doesn't need this. Populated for the duration of ServerPlayerMixin#onPlayerDie
-    // (HEAD to TAIL) only.
-    private static final Map<UUID, Boolean> ACTIVE_DEATH = new ConcurrentHashMap<>();
+    private static final Map<UUID, UUID> ACTIVE_DEATH = new ConcurrentHashMap<>();
 
     public static boolean isEnabled() {
         return ConfigManager.getModConfig().despawnRecovery.enabled;
     }
 
-    /** Called at HEAD of the player's die() so Fabric's drop-creation hook can tell a death
-     *  drop apart from a live manual drop via isActivelyDying(). */
+    /** Called at HEAD of the player's die() to mint a fresh deathId for this specific death,
+     *  and so Fabric's drop-creation hook can tell a death drop apart from a live manual drop
+     *  via isActivelyDying(). */
     public static void beginDeath(UUID playerUUID) {
         if (isEnabled()) {
-            ACTIVE_DEATH.put(playerUUID, Boolean.TRUE);
+            ACTIVE_DEATH.put(playerUUID, UUID.randomUUID());
         }
     }
 
@@ -66,7 +73,14 @@ public class DespawnCaptureTrigger {
     }
 
     public static void markOwned(ItemEntity entity, UUID ownerUUID) {
-        DespawnTracker.track(entity.getUUID(), ownerUUID);
+        UUID deathId = ACTIVE_DEATH.get(ownerUUID);
+        if (deathId == null) {
+            // Shouldn't normally happen (markOwned should only fire while a death is active),
+            // but fall back to a one-off id rather than silently dropping the tag - worst
+            // case this single item just won't be grouped with any siblings.
+            deathId = UUID.randomUUID();
+        }
+        DespawnTracker.track(entity.getUUID(), ownerUUID, deathId);
     }
 
     /**
@@ -76,7 +90,9 @@ public class DespawnCaptureTrigger {
      *         DespawnBatchAggregator for when/why it's finalized.
      */
     public static boolean tryIntercept(ServerLevel level, ItemEntity entity) {
-        UUID ownerUUID = DespawnTracker.untrack(entity.getUUID());
+        UUID entityUUID = entity.getUUID();
+        UUID deathId = DespawnTracker.peekDeathId(entityUUID);
+        UUID ownerUUID = DespawnTracker.untrack(entityUUID);
         if (ownerUUID == null) return false;
 
         ItemStack remaining = entity.getItem();
@@ -84,22 +100,24 @@ public class DespawnCaptureTrigger {
             DespawnBatchAggregatorManager.addItem(level, ownerUUID, remaining.copy());
         }
 
-        sweepOutstandingSiblings(level, ownerUUID);
+        if (deathId != null) {
+            sweepOutstandingSiblings(level, ownerUUID, deathId);
+        }
 
         return true;
     }
 
     /**
-     * This entity reaching real expiry confirms the death's loot window has closed - so any
-     * other still-tracked entities from the same death are force-captured right now via UUID
-     * lookup, rather than waiting for each to individually tick its way to expiry (which may
-     * never happen soon, or at all, if they're sitting in a chunk outside simulation distance).
-     * Anything not currently found (chunk unloaded, or already picked up by a player) is left
-     * tracked - it'll either get swept next time, expire naturally later, or sit as a harmless
-     * stale entry if it was actually picked up.
+     * This entity reaching real expiry confirms ITS death's loot window has closed - so any
+     * other still-tracked entities from the SAME death (same deathId, never a different one)
+     * are force-captured right now via UUID lookup, rather than waiting for each to
+     * individually tick its way to expiry. Anything not currently found (chunk unloaded, or
+     * already picked up by a player) is left tracked - it'll either get swept next time this
+     * death's siblings resolve, expire naturally later, or sit as a harmless stale entry if
+     * it was actually picked up.
      */
-    private static void sweepOutstandingSiblings(ServerLevel level, UUID ownerUUID) {
-        for (UUID siblingUUID : DespawnTracker.peekOutstanding(ownerUUID)) {
+    private static void sweepOutstandingSiblings(ServerLevel level, UUID ownerUUID, UUID deathId) {
+        for (UUID siblingUUID : DespawnTracker.peekOutstanding(deathId)) {
             Entity siblingEntity = level.getEntity(siblingUUID);
             if (!(siblingEntity instanceof ItemEntity siblingItem)) continue;
 
