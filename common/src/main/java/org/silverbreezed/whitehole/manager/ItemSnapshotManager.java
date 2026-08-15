@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * or be touched again when a new trigger is added.
  *
  * On disk, snapshots are split into one file per RecoveryReason
- * ("whitehole_data/void/[uuid].json", "whitehole_data/despawn/[uuid].json") so a write
+ * ("whitehole_data/void/<uuid>.json", "whitehole_data/despawn/<uuid>.json") so a write
  * triggered by one reason never has to re-serialize the other reason's history - despawn
  * captures are expected to be far more frequent than void deaths, so this avoids constantly
  * rewriting unrelated void-death data. In memory, both reasons still live together in one
@@ -170,7 +170,7 @@ public class ItemSnapshotManager {
             // Fully distributed into the two new files now - remove the redundant combined one.
             combinedFile.delete();
 
-            Constants.LOG.info("Split combined snapshot file into void/despawn for " + playerUUID);
+            Constants.LOG.info("[White Hole] Split combined snapshot file into void/despawn for " + playerUUID);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -204,10 +204,12 @@ public class ItemSnapshotManager {
         if (items.isEmpty()) return false;
 
         ModConfig config = ConfigManager.getModConfig();
+        int cap = maxSnapshotsFor(config, reason);
 
         LinkedList<RecoverySnapshot> records = IN_MEMORY_CACHE.computeIfAbsent(playerUUID, k -> new LinkedList<>());
 
-        if (records.size() >= config.maxSavedItemSnapshots) {
+        long currentCountForReason = records.stream().filter(r -> r.getReason() == reason).count();
+        if (currentCountForReason >= cap) {
             notifyIfOnline(level, playerUUID,
                     "§c[§lWhite Hole§r§c] White Hole Capacity is Full and your items is not saved! You must bring back your past item.");
             return false;
@@ -219,6 +221,12 @@ public class ItemSnapshotManager {
         return true;
     }
 
+    private static int maxSnapshotsFor(ModConfig config, RecoveryReason reason) {
+        return reason == RecoveryReason.DESPAWN
+                ? config.despawnRecovery.maxSnapshots
+                : config.voidRecovery.maxSnapshots;
+    }
+
     private static void notifyIfOnline(Level level, UUID playerUUID, String message) {
         if (level.getServer() == null) return;
         ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerUUID);
@@ -227,18 +235,41 @@ public class ItemSnapshotManager {
         }
     }
 
-    public static RecoverySnapshot popLastSnapshot(Level level, UUID playerUUID) {
+    /**
+     * Read-only view of every snapshot currently held for a player, in the same
+     * chronological order the altar and this manager already use internally. Does not
+     * remove anything - intended for the snapshot-selection GUI to render from.
+     */
+    public static List<RecoverySnapshot> peekAllSnapshots(UUID playerUUID) {
         LinkedList<RecoverySnapshot> records = IN_MEMORY_CACHE.get(playerUUID);
-        if (records == null || records.isEmpty()) return null;
+        if (records == null) return List.of();
+        return new ArrayList<>(records);
+    }
 
-        RecoverySnapshot last = records.removeLast();
-        persistReason(level, playerUUID, last.getReason(), records);
+    /**
+     * Removes and returns a specific snapshot by its position (as seen in
+     * peekAllSnapshots()), rather than always the most recent one. This is what lets a
+     * player choose which loss to recover instead of being forced to redeem them in
+     * strict chronological order.
+     */
+    public static RecoverySnapshot popSnapshotAt(Level level, UUID playerUUID, int index) {
+        LinkedList<RecoverySnapshot> records = IN_MEMORY_CACHE.get(playerUUID);
+        if (records == null || index < 0 || index >= records.size()) return null;
+
+        RecoverySnapshot removed = records.remove(index);
+        persistReason(level, playerUUID, removed.getReason(), records);
 
         if (records.isEmpty()) {
             IN_MEMORY_CACHE.remove(playerUUID);
         }
 
-        return last;
+        return removed;
+    }
+
+    public static RecoverySnapshot popLastSnapshot(Level level, UUID playerUUID) {
+        LinkedList<RecoverySnapshot> records = IN_MEMORY_CACHE.get(playerUUID);
+        if (records == null || records.isEmpty()) return null;
+        return popSnapshotAt(level, playerUUID, records.size() - 1);
     }
 
     public static LinkedList<RecoverySnapshot> getAndClearSavedItems(Level level, UUID playerUUID) {
@@ -259,7 +290,7 @@ public class ItemSnapshotManager {
     private static void persistReason(Level level, UUID playerUUID, RecoveryReason reason, LinkedList<RecoverySnapshot> allRecords) {
         List<RecoverySnapshot> subset = allRecords.stream()
                 .filter(r -> r.getReason() == reason)
-                .toList();
+                .collect(Collectors.toList());
 
         File file = getSaveFile(level, playerUUID, reason);
 
@@ -291,7 +322,7 @@ public class ItemSnapshotManager {
         root.add("snapshots", recordsArray);
 
         org.silverbreezed.whitehole.manager.AsyncIOManager.writeJsonAsync(file, root).thenRun(() -> {
-            Constants.LOG.info("Snapshot (" + reason + ") successfully saved for: " + playerUUID);
+            Constants.LOG.info("[White Hole IO] Snapshot (" + reason + ") berhasil disimpan asinkron untuk: " + playerUUID);
         });
     }
 }
