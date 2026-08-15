@@ -6,7 +6,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import org.silverbreezed.whitehole.manager.ConfigManager;
 import org.silverbreezed.whitehole.manager.DespawnBatchAggregatorManager;
-import org.silverbreezed.whitehole.manager.DespawnTracker;
+import org.silverbreezed.whitehole.tracker.DespawnTracker;
 
 import java.util.Map;
 import java.util.UUID;
