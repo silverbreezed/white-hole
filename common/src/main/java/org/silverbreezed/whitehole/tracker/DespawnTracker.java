@@ -1,4 +1,4 @@
-package org.silverbreezed.whitehole.manager;
+package org.silverbreezed.whitehole.tracker;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -11,12 +11,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * can recognise "this one is ours" without touching entities from farms, thrown items, or
  * manual drops via the Q key.
  *
- * Also tracks, per owner, the full set of currently-outstanding entities from their death(s) -
- * this is what lets DespawnCaptureTrigger "sweep" siblings that haven't individually expired
- * yet once one of them does (see peekOutstanding()). Without this, items scattered far enough
- * apart that simulation distance staggers their expiry - a real scenario, since entities only
- * tick while their chunk is within a player's simulation distance - would each finalize their
- * own separate batch instead of one unified snapshot.
+ * Entities are grouped by deathId, NOT just by owner - a player can have items outstanding
+ * from more than one unresolved death at once (e.g. died again before the first death's
+ * items were captured), and those must never be merged into the same snapshot just because
+ * they share an owner. See DespawnCaptureTrigger's beginDeath()/markOwned() for where a
+ * deathId is minted and attached.
  *
  * In-memory only, keyed by entity UUID (stable across chunk reload, unlike the Java object
  * reference). Deliberate trade-off: if the server restarts before a tracked entity is either
@@ -27,14 +26,26 @@ import java.util.concurrent.ConcurrentHashMap;
  * best-effort safety net.
  */
 public class DespawnTracker {
-    private static final Map<UUID, UUID> ENTITY_TO_OWNER = new ConcurrentHashMap<>();
-    private static final Map<UUID, Set<UUID>> OWNER_TO_OUTSTANDING_ENTITIES = new ConcurrentHashMap<>();
 
-    public static void track(UUID entityUUID, UUID ownerUUID) {
-        ENTITY_TO_OWNER.put(entityUUID, ownerUUID);
-        OWNER_TO_OUTSTANDING_ENTITIES
-                .computeIfAbsent(ownerUUID, k -> ConcurrentHashMap.newKeySet())
+    private record TrackedEntry(UUID ownerUUID, UUID deathId) {}
+
+    private static final Map<UUID, TrackedEntry> ENTITY_TO_OWNER = new ConcurrentHashMap<>();
+    private static final Map<UUID, Set<UUID>> DEATH_TO_OUTSTANDING_ENTITIES = new ConcurrentHashMap<>();
+
+    public static void track(UUID entityUUID, UUID ownerUUID, UUID deathId) {
+        ENTITY_TO_OWNER.put(entityUUID, new TrackedEntry(ownerUUID, deathId));
+        DEATH_TO_OUTSTANDING_ENTITIES
+                .computeIfAbsent(deathId, k -> ConcurrentHashMap.newKeySet())
                 .add(entityUUID);
+    }
+
+    /**
+     * The deathId a tracked entity currently belongs to, if any. Call this BEFORE untrack()
+     * for the same entity - untrack() removes the mapping this reads from.
+     */
+    public static UUID peekDeathId(UUID entityUUID) {
+        TrackedEntry entry = ENTITY_TO_OWNER.get(entityUUID);
+        return entry == null ? null : entry.deathId();
     }
 
     /**
@@ -43,23 +54,26 @@ public class DespawnTracker {
      * sweep), so a given entity can never be captured twice.
      */
     public static UUID untrack(UUID entityUUID) {
-        UUID owner = ENTITY_TO_OWNER.remove(entityUUID);
-        if (owner != null) {
-            Set<UUID> siblings = OWNER_TO_OUTSTANDING_ENTITIES.get(owner);
-            if (siblings != null) {
-                siblings.remove(entityUUID);
+        TrackedEntry entry = ENTITY_TO_OWNER.remove(entityUUID);
+        if (entry == null) return null;
+
+        Set<UUID> siblings = DEATH_TO_OUTSTANDING_ENTITIES.get(entry.deathId());
+        if (siblings != null) {
+            siblings.remove(entityUUID);
+            if (siblings.isEmpty()) {
+                DEATH_TO_OUTSTANDING_ENTITIES.remove(entry.deathId());
             }
         }
-        return owner;
+        return entry.ownerUUID();
     }
 
     /**
-     * Every entity UUID still tracked for this owner (i.e. not yet expired, swept, or
-     * otherwise untracked) - a defensive copy, safe to iterate while untrack() is called
-     * concurrently for entries within it.
+     * Every entity UUID still tracked for this SPECIFIC death - deliberately scoped to one
+     * deathId, not "every outstanding entity this player happens to have", so sweeping
+     * siblings on one death's expiry can never pull in an unrelated, still-pending death.
      */
-    public static Set<UUID> peekOutstanding(UUID ownerUUID) {
-        Set<UUID> siblings = OWNER_TO_OUTSTANDING_ENTITIES.get(ownerUUID);
+    public static Set<UUID> peekOutstanding(UUID deathId) {
+        Set<UUID> siblings = DEATH_TO_OUTSTANDING_ENTITIES.get(deathId);
         return siblings == null ? Set.of() : new HashSet<>(siblings);
     }
 }
