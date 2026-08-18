@@ -6,7 +6,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import org.silverbreezed.whitehole.Constants;// Import Pabrik Anda
+import org.silverbreezed.whitehole.Constants;
 import org.silverbreezed.whitehole.registry.block.ModBlocks;
 
 public class ModBlocksNeoForge {

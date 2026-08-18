@@ -6,7 +6,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.minecraft.server.level.ServerPlayer;
 import org.silverbreezed.whitehole.event.capture.VoidDeathCaptureTrigger;
 
-@EventBusSubscriber(modid = "whitehole")
+@EventBusSubscriber(modid = Constants.MOD_ID)
 public class NeoForgeEventSubscriber {
 
     @SubscribeEvent

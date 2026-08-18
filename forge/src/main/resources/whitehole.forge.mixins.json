@@ -2,20 +2,12 @@
   "required": true,
   "minVersion": "0.8",
   "package": "org.silverbreezed.whitehole.mixin",
-  "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_18",
-  "mixins": [
-    "PlayerLoginMixin",
-    "ServerPlayerMixin"
-  ],
+  "mixins": [],
   "client": [
   ],
   "server": [],
   "injectors": {
     "defaultRequire": 1
-  },
-  "overwrites": {
-    "requireAnnotations": true
   }
 }
-
