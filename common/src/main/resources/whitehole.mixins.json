@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "org.silverbreezed.whitehole.mixin",
-  "compatibilityLevel": "JAVA_25",
+  "compatibilityLevel": "JAVA_18",
   "mixins": [
     "PlayerLoginMixin",
     "ServerPlayerMixin"

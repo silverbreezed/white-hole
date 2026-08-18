@@ -92,7 +92,7 @@ public class DespawnBatchAggregatorManager {
             if (items.isEmpty()) return;
 
             ItemSnapshotManager.capture(RecoveryReason.DESPAWN, level, ownerUUID, items);
-            Objects.requireNonNull(level.getPlayerInAnyDimension(ownerUUID)).sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dYour items has despawned. You can bring back your items using the White Hole Altar in an Ancient City."));;
+            Objects.requireNonNull(level.getPlayerInAnyDimension(ownerUUID)).displayClientMessage(Component.literal("§5[§lWhite Hole§r§5] §dYour items has despawned. You can bring back your items using the White Hole Altar in an Ancient City."), false);;
             Constants.LOG.info("Finalized a despawn batch of " + items.size() + " item(s) for " + ownerUUID);
         });
     }

@@ -25,11 +25,11 @@ public class ServerPlayerMixin {
         DespawnCaptureTrigger.beginDeath(player.getUUID());
 
         if (voidDeathsecured) {
-            player.sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dYou died in the void. You can bring back your items using the White Hole Altar in an Ancient City."));
+            player.displayClientMessage(Component.literal("§5[§lWhite Hole§r§5] §dYou died in the void. You can bring back your items using the White Hole Altar in an Ancient City."), false);
         }
 
         if (!source.is(DamageTypes.FELL_OUT_OF_WORLD)) {
-            player.sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dYou died. If your items despawned, you can bring back your items using the White Hole Altar in an Ancient City."));
+            player.displayClientMessage(Component.literal("§5[§lWhite Hole§r§5] §dYou died. If your items despawned, you can bring back your items using the White Hole Altar in an Ancient City."), false);
         }
     }
 

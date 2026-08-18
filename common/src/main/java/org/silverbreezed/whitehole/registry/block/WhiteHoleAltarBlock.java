@@ -71,7 +71,7 @@ public class WhiteHoleAltarBlock extends Block {
 
             if (modConfig.altarCooldown && timePassed < modConfig.defaultAltarCooldown) {
                 if (!level.isClientSide()) {
-                    player.sendSystemMessage(Component.literal("§f[White Hole] §cThe altar is cooldown. Wait §e" + ((1200 - timePassed) / 20) + " §cs."));
+                    player.displayClientMessage(Component.literal("§f[White Hole] §cThe altar is cooldown. Wait §e" + ((1200 - timePassed) / 20) + " §cs."), false);
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -87,7 +87,7 @@ public class WhiteHoleAltarBlock extends Block {
 
                 if (!level.isClientSide()) {
                     PENDING_PLACER.put(pos, playerUUID);
-                    player.sendSystemMessage(Component.literal("§5[§lWhite Hole§r§5] §dCosmic Eye has installed. Opening the gate of the void singularity..."));
+                    player.displayClientMessage(Component.literal("§5[§lWhite Hole§r§5] §dCosmic Eye has installed. Opening the gate of the void singularity..."), false);
                     level.playSound(null, pos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 0.3F, 1.05F);
                     level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.5F, 1.10F);
 
@@ -96,7 +96,7 @@ public class WhiteHoleAltarBlock extends Block {
                 return InteractionResult.SUCCESS;
             } else {
                 if (!level.isClientSide()) {
-                    player.sendSystemMessage(Component.literal("§7This altar pillar has an empty cavity in the shape of an eye. Use Cosmic Eye item to begin restoration."));
+                    player.displayClientMessage(Component.literal("§7This altar pillar has an empty cavity in the shape of an eye. Use Cosmic Eye item to begin restoration."), false);
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -139,7 +139,7 @@ public class WhiteHoleAltarBlock extends Block {
             serverLevel.playSound(null, pos, SoundEvents.WARDEN_SONIC_BOOM, SoundSource.BLOCKS, 1.0F, 1.1F);
 
             if (player != null) {
-                player.sendSystemMessage(Component.literal("§f[§lWhite Hole§r] §7The singularity broke! All your materials have been successfully reconstructed."));
+                player.displayClientMessage(Component.literal("§f[§lWhite Hole§r] §7The singularity broke! All your materials have been successfully reconstructed."), false);
             }
         }
         // --- IF NO ITEMS ---
@@ -153,9 +153,9 @@ public class WhiteHoleAltarBlock extends Block {
             serverLevel.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.2F, 1.0F);
 
             if (player != null) {
-                player.sendSystemMessage(Component.literal(
+                player.displayClientMessage(Component.literal(
                         "§4[§lWhite Hole§r§4] §cThe gate refuses entry! No such materials or items from the last death"
-                ));
+                ), false);
             }
         }
 

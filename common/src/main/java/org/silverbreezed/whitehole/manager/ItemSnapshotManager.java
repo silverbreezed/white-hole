@@ -231,7 +231,7 @@ public class ItemSnapshotManager {
         if (level.getServer() == null) return;
         ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerUUID);
         if (player != null) {
-            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(message));
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal(message), false);
         }
     }
 
