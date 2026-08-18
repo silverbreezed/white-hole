@@ -1,11 +1,5 @@
 {
   "variants": {
-    "lit=false": {
-      "model": "whitehole:block/white_hole_altar_unlit"
-    },
-    "lit=true": {
-      "model": "whitehole:block/white_hole_altar_lit"
-    },
     "lit=false,facing=north": { "model": "whitehole:block/white_hole_altar_unlit" },
     "lit=false,facing=south": { "model": "whitehole:block/white_hole_altar_unlit", "y": 180 },
     "lit=false,facing=west":  { "model": "whitehole:block/white_hole_altar_unlit", "y": 270 },
