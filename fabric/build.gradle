@@ -3,6 +3,11 @@ plugins {
     id 'net.fabricmc.fabric-loom'
     id 'org.jetbrains.kotlin.jvm'
 }
+
+base {
+    archivesName = "${mod_id}-fabric"
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:${minecraft_version}")
     implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
