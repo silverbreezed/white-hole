@@ -1,8 +1,8 @@
-# Recover your Despawned Items or Items that Lost to the End Void
+# Recover your Despawned Items or Items Lost to the End Void
 
 This mod is designed to cure two of Minecraft's ultimate frustrations:
-- Dying and **losing the hard-gained items when they naturally despawn** before you can reach them
-- and **dying in the Void** with absolutely zero chance to recover it
+- **Dying and losing hard-earned items** when they **despawn** before you can reach them
+- **Dying in the Void** and lost the items with absolutely zero chance to recover it
 
 With the **White Hole Altar** and **Cosmic Eye**, you can recover despawned items after dying and your lost inventory after falling into the Void.
 
@@ -10,12 +10,14 @@ With the **White Hole Altar** and **Cosmic Eye**, you can recover despawned item
 
 > **Not literally a *white hole* physics object.** Instead, it taps into an invisible cosmic force that expels what time or the Void has swallowed.
 
+[![Available for Fabric](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/supported/fabric_vector.svg)](https://modrinth.com/mod/white-hole/versions?l=fabric) [![Available for NeoForge](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/supported/neoforge_vector.svg)](https://modrinth.com/mod/white-hole/versions?l=neoforge) [![Available for Forge](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/supported/forge_vector.svg)](https://modrinth.com/mod/white-hole/versions?l=forge)
+
 ---
 
 ## 🟥 The Frustration of Vanilla Minecraft
 
-* **The Brutal Despawn Timer:** You die far from spawn or deep in a treacherous cave. You sprint and navigate back to your death point as fast as humanly possible, but your items was despawned and literally gone forever.
-* **The End Void:** You slip while bridging across **The End**, and your hard-gained gear lost into the void with zero chance of recovery.
+* **Despawn Timer:** You die far from spawn. You sprint and navigate back to your death point, but your items have already despawned and literally gone forever.
+* **The End Void:** You slip while bridging across **The End**, and your hard-earned gear lost into the void with zero chance of recovery.
 
 Vanilla Minecraft offers no second chances when time runs out or the void takes your loot. **White Hole gives you a lore-friendly way to get it back.**
 
@@ -23,39 +25,62 @@ Vanilla Minecraft offers no second chances when time runs out or the void takes 
 
 This mod introduces a high-risk, high-reward mechanic that allows you to recover items from most recent despawned items after dying, and recent death into the Void.
 
-* **The White Hole Altar:** A mysterious structure naturally generated at the center of **Ancient Cities** in the Overworld.
+* **The White Hole Altar:** A structure naturally generated at the center of **Ancient Cities** in the Overworld.
 * **The Cosmic Eye:** A rare artifact to open the white hole hidden in **Ancient City chests**
 
 ## 🔎 Finding the Cosmic Eye
 
 The Cosmic Eye can be found naturally in **Ancient City chests**, with a rarity comparable to an **Enchanted Golden Apple**.
 
-![Cosmic Eye Item](https://cdn.modrinth.com/data/cached_images/ebec0951770750fb5a3622e5237b0a59e259f39c.png)
+![Cosmic Eye Item](https://cdn.modrinth.com/data/cached_images/4979d97829a49d152340f00b7f0ebbdc399b1117.png)
+
+
+## 🛠️ Crafting the Cosmic Eye
+
+![Cosmic Eye Recipe](https://cdn.modrinth.com/data/cached_images/f2163e4c09a9aff3d5a99c9175087fabc59e4fcb.png)
 
 ---
 
 ## ❓ Frequently Asked Questions (FAQ)
 
-**Q: Can this mod recover items lost BEFORE installing it?**<br>
-A: **No.** The mod can only track and save data for deaths and despawns that occur while the mod is active.
+<details>
+  <summary>Can this mod recover items that I lost BEFORE installing it?</summary>
 
-**Q: Is this mod multiplayer-friendly?**<br>
-A: **Yes**, but currently the mod must be installed on both the server and the client. Standalone server-side support (via Polymer) is in active development.
+  **No**. The mod can only track and save your inventory data for deaths that occur after the mod has been successfully installed and activated.
+</details>
 
-**Q: What happens if I die multiple times before visiting the Altar?**<br>
-A: The mod stores up to `maxSavedItemSnapshots` (3 by default) in history. This means the white hole will save your full inventory for the maximum 3 snapshots of death.
+<details> 
+  <summary>Why are my items not recorded immediately if I die very far away?</summary>
+  
+  The mod only records items when they actually despawn. The vanilla despawn timer depends on the player's simulation distance, chunks that are too far away will freeze. The mod will only record and save your items once you return to the death location and the despawn timer finishes counting down.
+</details>
 
-**Q: Does this save items that I drop manually with 'Q' (default drop key)**<br>
-A: **No.** The despawn tracker specifically tags items dropped upon a player's death. Normal manual drops, thrown items, and automated farm drops will despawn naturally without being saved.
+<details>
+  <summary>Is this mod multiplayer-friendly?</summary>
+
+  **Yes**, but currently the mod must be installed on both the server and the client. Standalone server-side support (via Polymer) is in active development.
+</details>
+
+<details>
+  <summary>What happens if I die multiple times before visiting the Altar?</summary>
+
+  The mod stores up to `maxSavedItemSnapshots` (3 by default) in history. This means the white hole will save your full inventory for the maximum 3 snapshots of death for each category.
+</details>
+
+<details>
+  <summary>Does this save items that I drop manually with 'Q' (default drop key)?</summary>
+
+  **No**. The despawn tracker specifically tags items dropped upon a player's death. Normal manual drops, thrown items, and automated farm drops will despawn naturally without being saved.
+</details>
 
 ---
 
 ## ℹ️ Future Updates
 
-* Polymer integration to enable multiplayer servers to use the mod without requiring every player to install the mod on their client.
-* Snapshot selection menu to allowing players to view and select which specific death snapshot they want to restore instead of automatically recovering only the latest one.
-* In-game configuration UI using `cloth_config_api` for both **Fabric and NeoForge**.
-* Porting to additional Minecraft versions (especially 1.21.11, 26.1.2).
+* **Polymer Integration:** Enable multiplayer servers to use the mod without requiring every player to install it on their client (**FABRIC ONLY**).
+* **Snapshot Selection Menu:** Allow players to view and select which specific death snapshot they want to restore, instead of automatically recovering only the latest one.
+* **In-Game Configuration UI:** Adding a config screen using `cloth_config_api` for both **Fabric and NeoForge**.
+* **Command**: `/wh reload` command to reload configuration directly.
 
 ---
 
@@ -68,12 +93,13 @@ A: **No.** The despawn tracker specifically tags items dropped upon a player's d
   "voidRecovery": {
     "overworld": false,
     "nether": false,
-    "end": true
+    "end": true,
+    "maxSnapshots": 3
   },
   "despawnRecovery": {
-    "enabled": true
+    "enabled": true,
+    "maxSnapshots": 3
   },
-  "maxSavedItemSnapshots": 3,
   "altarCooldown": false,
   "defaultAltarCooldown": 1200
 }
